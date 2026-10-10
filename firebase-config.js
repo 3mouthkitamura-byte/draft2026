@@ -1,3 +1,4 @@
+// Firebaseの接続設定（draft2026-6b47c）
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyDT0WuT3MY_IXsoNeuwb1FdpDX-GYl8JDk",
   authDomain: "draft2026-6b47c.firebaseapp.com",

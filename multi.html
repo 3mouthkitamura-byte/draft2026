@@ -172,6 +172,7 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
 .seat{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--card);text-align:left;display:flex;flex-direction:column;gap:2px;min-height:58px}
 .seat .tn{font-weight:700}
 .seat .who{font-size:12.5px;color:var(--muted)}
+.teamsw{display:flex;flex-wrap:wrap;gap:6px;width:100%}
 .seat.mine{border-color:var(--accent);background:var(--accent-soft)}
 .seat.taken:not(.mine){background:var(--paper)}
 .seat:disabled{cursor:default}
@@ -195,7 +196,7 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
   <header class="top">
     <div>
       <h1>みんなで仮想ドラフト2026</h1>
-      <p>参加者がそれぞれ自分のスマホやパソコンから球団を担当して、ドラフト会議をします。アカウントは不要です。人がいない球団は自動で指名。1位は全員同時に入札して抽選、2位以降はウェーバー方式（今年はセ・リーグ優先）、1回の持ち時間は3分です。</p>
+      <p>参加者がそれぞれ自分のスマホやパソコンから球団を担当して、ドラフト会議をします。アカウントは不要です。人がいない球団は自動で指名。1位は全員同時に入札して抽選、2位以降はウェーバー方式（今年はパ・リーグ優先）、1回の持ち時間は3分です。</p>
     </div>
   </header>
   <p class="muted" style="margin:0;font-size:12.5px"><a href="index.html">トップへ</a>・<a href="solo.html">1人で遊ぶ（中日目線）</a></p>
@@ -806,7 +807,7 @@ function aiBid(st,team){
 /* ---------------- connection ---------------- */
 const NET={room:null,user:null,me:null,isAdmin:false,isHost:false,hostPeer:null,lastStateAt:0,recvAt:0};
 let ST=emptyState();
-const L={nick:'',team:null,seq:0,actKind:null};
+const L={nick:'',teams:[],active:null,seq:0,actKind:null,acts:[],bids:{}};
 try{L.nick=localStorage.getItem('mp26-nick')||''}catch(e){}
 
 async function connect(){
@@ -849,12 +850,21 @@ function showNoRoom(){
 }
 function pushPresence(){
   if(!NET.room)return;
-  const pres={nick:L.nick||'',team:L.team,role:NET.isHost?'host':'player',act:L.actKind?{seq:L.seq,kind:L.actKind.kind,pid:L.actKind.pid}:null};
+  const pres={nick:L.nick||'',team:L.teams[0]||null,teams:L.teams.slice(0,12),role:NET.isHost?'host':'player',acts:L.acts.slice(-8)};
   NET.room.presence(pres).catch(()=>{});
   if(NET.isHost&&NET.me)hostProcessPeer({peer:NET.me,presence:pres});
 }
-function sendAct(kind,pid){L.seq++;L.actKind={kind,pid};pushPresence()}
-function myTeam(){const me=NET.me;if(!me)return null;for(const [t,p] of Object.entries(ST.seats||{}))if(p===me)return t;return null}
+function sendAct(kind,pid,team){L.seq++;L.actKind={kind,pid,team};L.acts.push({seq:L.seq,kind,pid,team});if(L.acts.length>8)L.acts.shift();pushPresence()}
+function doAct(team,kind,pid){if(NET.isHost)return hostAct(team,kind,pid);sendAct(kind,pid,team)}
+function myTeams(){const me=NET.me;if(!me)return [];return TEAMS.map(t=>t.id).filter(t=>ST.seats&&ST.seats[t]===me)}
+function myTeam(){
+  const mine=myTeams();if(!mine.length)return null;
+  if(ST.phase==='draft'&&mine.includes(ST.cur))return ST.cur;
+  if(ST.phase==='reveal'&&ST.reveal&&ST.reveal.step>=0){const c=ST.reveal.contests[Math.min(ST.reveal.step,ST.reveal.contests.length-1)];
+    if(c){const m=mine.filter(t=>c[1].includes(t));const u=m.find(t=>c[2]==null&&(c[3]||{})[t]==null);if(u)return u;if(m.length)return m[0]}}
+  if(ST.phase==='bid'){const pend=mine.filter(t=>ST.pending.includes(t));if(pend.length){if(L.active&&pend.includes(L.active))return L.active;return pend.find(t=>!ST.bidsIn.includes(t)&&L.bids[t]==null)||pend[0]}}
+  return L.active&&mine.includes(L.active)?L.active:mine[0];
+}
 function nickOf(peer){if(!NET.room)return '';const p=NET.room.peers().find(x=>x.peer===peer);return p&&p.presence&&typeof p.presence.nick==='string'?p.presence.nick.slice(0,8):''}
 function hostPresent(){if(NET.isHost)return true;if(!NET.room)return false;return NET.room.peers().some(p=>p.presence&&p.presence.role==='host')&&Date.now()-NET.lastStateAt<15000}
 
@@ -889,18 +899,18 @@ function hostProcessPeer(p){
   if(!p||!p.presence)return;
   const pr=p.presence, peer=p.peer; let ch=false;
   // seat claim
-  const want=typeof pr.team==='string'&&TN[pr.team]?pr.team:null;
-  const cur=Object.entries(ST.seats).find(([,v])=>v===peer);
-  if(want!==(cur?cur[0]:null)){
-    if(cur){delete ST.seats[cur[0]];ch=true}
-    if(want&&!ST.seats[want]){ST.seats[want]=peer;ch=true;if(ST.phase==='draft'&&ST.cur===want)H.deadline=Date.now()+TURN_MS}
-  }
+  const wantL=Array.isArray(pr.teams)?pr.teams:(typeof pr.team==='string'?[pr.team]:[]);
+  const want=new Set(wantL.filter(t=>typeof t==='string'&&TN[t]));
+  for(const [t,v] of Object.entries(ST.seats))if(v===peer&&!want.has(t)){delete ST.seats[t];ch=true;if(ST.phase==='draft'&&ST.cur===t)H.aiAt=Date.now()+AI_DELAY}
+  for(const t of want)if(!ST.seats[t]){ST.seats[t]=peer;ch=true;if(ST.phase==='draft'&&ST.cur===t)H.deadline=Date.now()+TURN_MS}
   // action
-  const a=pr.act;
-  if(a&&typeof a.seq==='number'&&a.seq>(H.lastSeq[peer]||0)){
+  const acts=(Array.isArray(pr.acts)?pr.acts:(pr.act?[pr.act]:[])).filter(a=>a&&typeof a.seq==='number').sort((x,y)=>x.seq-y.seq);
+  for(const a of acts){
+    if(a.seq<=(H.lastSeq[peer]||0))continue;
     H.lastSeq[peer]=a.seq;
-    const team=Object.entries(ST.seats).find(([,v])=>v===peer);
-    if(team&&hostAct(team[0],a.kind,a.pid))ch=false; // hostAct broadcasts itself
+    let team=typeof a.team==='string'&&ST.seats[a.team]===peer?a.team:null;
+    if(!team&&!a.team){const own=Object.entries(ST.seats).filter(([,v])=>v===peer);if(own.length===1)team=own[0][0]}
+    if(team){if(ch){hostCheckBidsComplete();hostBroadcast(true);ch=false}hostAct(team,a.kind,a.pid)}
   }
   if(ch){hostCheckBidsComplete();hostBroadcast(true)}
 }
@@ -1033,13 +1043,15 @@ function renderStatus(){
   if(ST.phase==='lobby'){ph.textContent='ロビー';msg.innerHTML='担当球団を選んでください。'+(NET.isHost?'そろったら<b>ドラフト開始</b>を押します。':'主催者がドラフトを始めるまでお待ちください。')}
   else if(ST.phase==='bid'){
     ph.textContent=ST.iter===1?'1巡目 入札':'外れ1位 入札';
-    msg.innerHTML=canBid()?(ST.bidsIn.includes(t)?'入札しました。ほかの参加者を待っています（入札は変更できます）。':'<b>入札する選手</b>を選んでください。全員そろうか時間切れで一斉に公開します。'):'参加者の入札を待っています。';
+    const mp=myTeams().filter(x=>ST.pending.includes(x));const nm=mp.length>1?`（${TN[t]}）`:'';
+    msg.innerHTML=canBid()?(ST.bidsIn.includes(t)?`${nm}入札しました。ほかの参加者を待っています（入札は変更できます）。`:`<b>${nm}入札する選手</b>を選んでください。全員そろうか時間切れで一斉に公開します。`):'参加者の入札を待っています。';
+    if(mp.length>1){const w=document.createElement('div');w.className='teamsw';w.innerHTML=mp.map(x=>`<button class="btn small${x===t?' primary':''}" data-sw="${x}">${TN[x]}${ST.bidsIn.includes(x)?' ✓':''}</button>`).join('');act.appendChild(w)}
   } else if(ST.phase==='reveal'){ph.textContent='抽選';msg.textContent='入札結果を公開しています。'}
   else if(ST.phase==='draft'){
     const no=orderFor(ST.round).indexOf(ST.cur)+1;
     ph.textContent=`${ST.round}巡目`;
     msg.innerHTML=canPick()?`<b>あなた（${TN[t]}）の番です。</b>指名する選手を選んでください。`:`${TN[ST.cur]||''}の番です（${ST.round}巡目の<span class="num">${no}</span>番目）${ST.seats[ST.cur]?`・${esc(nickOf(ST.seats[ST.cur])||'参加者')}が考え中`:'・自動指名'}。`;
-    if(canPick()){const b=document.createElement('button');b.className='btn small';b.textContent='ここで指名終了';b.onclick=()=>{if(NET.isHost)hostAct(t,'end');else sendAct('end',null)};act.appendChild(b)}
+    if(canPick()){const b=document.createElement('button');b.className='btn small';b.textContent='ここで指名終了';b.onclick=()=>{if(NET.isHost)hostAct(t,'end');else sendAct('end',null,t)};act.appendChild(b)}
   } else if(ST.phase==='done'){ph.textContent='指名終了';msg.textContent=NET.isHost?'全球団の指名が終わりました。「もう一度ドラフトする」で担当球団はそのままロビーに戻ります。':'全球団の指名が終わりました。主催者がもう一度始めるのを待っています。'}
   if(NET.isHost&&ST.phase!=='lobby'){
     const b=document.createElement('button');b.className='btn small'+(ST.phase==='done'?' primary':' danger');
@@ -1059,18 +1071,18 @@ function renderLobby(){
   else lb.querySelector('h2').textContent='担当球団を選ぶ';
   const me=NET.me;
   $('#seats').innerHTML=TEAMS.map(t=>{
-    const holder=ST.seats[t.id];const mine=holder&&holder===me;const want=L.team===t.id&&!mine;
+    const holder=ST.seats[t.id];const mine=holder&&holder===me;const want=L.teams.includes(t.id)&&!mine;
     const who=holder?(mine?'あなた':esc(nickOf(holder)||'参加者')):(want?'確認中…':'自動指名');
     return `<button class="seat${holder?' taken':''}${mine?' mine':''}" data-seat="${t.id}" ${holder&&!mine?'disabled':''} aria-pressed="${!!mine}"><span class="tn">${t.n}</span><span class="who">${who}</span></button>`;
   }).join('');
   const n=NET.room.peers().length;$('#peopleCount').textContent=`接続中 ${n}人`;
   const hc=$('#hostCtl');
-  hc.innerHTML=NET.isHost&&ST.phase==='lobby'?`<button class="btn primary" id="startBtn">ドラフト開始</button><span class="muted" style="font-size:12.5px">人がいない球団は自動で指名します。あなたも担当球団を選べます（選ばなければ司会だけ）。</span>`:'';
+  hc.innerHTML=NET.isHost&&ST.phase==='lobby'?`<button class="btn primary" id="startBtn">ドラフト開始</button><span class="muted" style="font-size:12.5px">人がいない球団は自動で指名します。あなたも担当球団を選べます（1台で複数の球団もOK。選ばなければ司会だけ）。</span>`:'';
   const sb=$('#startBtn');if(sb)sb.onclick=hostStart;
 }
 function renderPool(){
   const tk=takenSet(ST);const bid=canBid(),pick=canPick();
-  const myBid=bid&&L.actKind&&L.actKind.kind==='bid'?L.actKind.pid:null;
+  const myBid=bid?L.bids[myTeam()]??null:null;
   const q=ui.q.trim();
   const list=P.filter(p=>{
     if(!ui.showTaken&&tk.has(p.id))return false;
@@ -1103,14 +1115,16 @@ function renderMine(){
   const act=canBid()?'bid':canPick()?'pick':null;
   $('#mylist').innerHTML=ST.phase==='done'?'':`<div class="mylist"><div class="panel-head"><h3>マイリスト</h3><span class="muted num" style="font-size:12px">残り ${my.length}人</span></div>${my.slice(0,8).map(p=>`<div class="mi"><span><b>${esc(p.n)}</b>${jtag(p.n)} <span class="muted">${esc(p.t)}・${POSL[p.pos]}・${p.g}</span></span>${act?`<button class="btn small primary" data-act="${act}" data-id="${p.id}">${act==='bid'?'入札':'指名'}</button>`:''}</div>`).join('')||(STAR.size?'<div class="muted" style="font-size:13px">マイリストの選手は残っていません。</div>':'<div class="muted" style="font-size:13px">マイリストはまだ空です。候補リストの☆で追加できます（このブラウザに保存）。</div>')}</div>`;
   if(!t){$('#sheet').innerHTML='<p class="muted" style="margin:0">担当球団を選ぶと、ここに指名した選手が並びます。</p>';$('#copyBox').innerHTML='';return}
-  let h=`<h3 style="margin-bottom:4px">${TN[t]}の指名</h3>`;
+  let h='';
+  for(const tt of myTeams()){
+  h+=`<h3 style="margin:${h?'14px':'0'} 0 4px">${TN[tt]}の指名</h3>`;
   for(let r=1;r<=ROUNDS;r++){
-    const o=ST.order.find(x=>x[0]===t&&x[2]===r);
-    h+=`<div class="slot"><div class="rd">${r}位</div>${o?`<div><b>${esc(P[o[1]].n)}</b>${jtag(P[o[1]].n)}　<span class="muted">${esc(P[o[1]].t)}・${POSL[P[o[1]].pos]}${o[3]===1?'・外れ1位':''}${o[3]===2?'・時間切れで自動':''}</span></div>`:`<div class="empty">${ST.ended.includes(t)&&r>1?'選択終了':'—'}</div>`}</div>`;
-  }
+    const o=ST.order.find(x=>x[0]===tt&&x[2]===r);
+    h+=`<div class="slot"><div class="rd">${r}位</div>${o?`<div><b>${esc(P[o[1]].n)}</b>${jtag(P[o[1]].n)}　<span class="muted">${esc(P[o[1]].t)}・${POSL[P[o[1]].pos]}${o[3]===1?'・外れ1位':''}${o[3]===2?'・時間切れで自動':''}</span></div>`:`<div class="empty">${ST.ended.includes(tt)&&r>1?'選択終了':'—'}</div>`}</div>`;
+  }}
   $('#sheet').innerHTML=h;
   $('#copyBox').innerHTML=ST.phase==='done'?`<button class="btn" id="copyRes" data-label="結果をコピー">結果をコピー</button>`:'';
-  const cb=$('#copyRes');if(cb)cb.onclick=()=>copyText(resultText(t),cb);
+  const cb=$('#copyRes');if(cb)cb.onclick=()=>copyText(myTeams().map(resultText).join('\n\n'),cb);
 }
 function resultText(t){
   const lines=[`【みんなで仮想ドラフト2026】${TN[t]}`];
@@ -1128,11 +1142,11 @@ const POSS={RHP:'投・右',LHP:'投・左',TW:'投・内',C:'捕',IF:'内',OF:'
 function renderBoard(){
   $('#legend').innerHTML=LEGEND[ui.color].map(([k,l])=>`<span><i class="${k}"></i>${l}</span>`).join('')+'<span class="muted">担当者がいる球団は見出しに名前、あなたの球団は青枠</span>';
   const t0=myTeam();
-  let h='<thead><tr><th></th>'+TEAMS.map(t=>{const s=ST.seats[t.id];return `<th class="${t.id===t0?'d':''}">${t.n}${s?`<span class="thn">${esc(s===NET.me?'あなた':(nickOf(s)||'参加者'))}</span>`:''}</th>`}).join('')+'</tr></thead><tbody>';
+  let h='<thead><tr><th></th>'+TEAMS.map(t=>{const s=ST.seats[t.id];return `<th class="${myTeams().includes(t.id)?'d':''}">${t.n}${s?`<span class="thn">${esc(s===NET.me?'あなた':(nickOf(s)||'参加者'))}</span>`:''}</th>`}).join('')+'</tr></thead><tbody>';
   for(let r=1;r<=ROUNDS;r++){
     h+=`<tr><th class="rh">${r}位</th>`;
     for(const t of TEAMS){
-      const o=ST.order.find(x=>x[0]===t.id&&x[2]===r);const d=t.id===t0?' d':'';
+      const o=ST.order.find(x=>x[0]===t.id&&x[2]===r);const d=myTeams().includes(t.id)?' d':'';
       if(o){const p=P[o[1]];const k=COLORMAP[ui.color][ui.color==='pos'?p.pos:p.c];h+=`<td class="${k}${d}"><span class="bn">${esc(p.n)}</span>${jtag(p.n)}<span class="bs">${POSS[p.pos]}・${esc(p.t)}${o[3]===1?'・外れ':''}${o[3]===2?'・自動':''}</span></td>`}
       else if(ST.phase==='draft'&&ST.cur===t.id&&ST.round===r)h+=`<td class="${d.trim()}"><span class="out">指名中…</span></td>`;
       else if(ST.ended.includes(t.id)&&r>1&&!ST.order.some(x=>x[0]===t.id&&x[2]>r))h+=`<td class="${d.trim()}"><span class="out">選択終了</span></td>`;
@@ -1143,7 +1157,7 @@ function renderBoard(){
   $('#board').innerHTML=h+'</tbody>';
 }
 function renderLog(){
-  $('#log').innerHTML=[...ST.order].reverse().map(o=>{const p=P[o[1]];const head=o[2]===1?'第1回選択希望選手':`第${o[2]}巡選択希望選手`;return `<div class="${o[0]===myTeam()?'mine':''}">${head}　${TN[o[0]]}　${esc(p.n)}　${POSA[p.pos]}　${esc(p.t)}${o[3]===1?'（外れ1位）':''}${o[3]===2?'（時間切れ・自動）':''}</div>`}).join('')||'<div class="sys">まだ指名はありません。</div>';
+  $('#log').innerHTML=[...ST.order].reverse().map(o=>{const p=P[o[1]];const head=o[2]===1?'第1回選択希望選手':`第${o[2]}巡選択希望選手`;return `<div class="${myTeams().includes(o[0])?'mine':''}">${head}　${TN[o[0]]}　${esc(p.n)}　${POSA[p.pos]}　${esc(p.t)}${o[3]===1?'（外れ1位）':''}${o[3]===2?'（時間切れ・自動）':''}</div>`}).join('')||'<div class="sys">まだ指名はありません。</div>';
 }
 function renderPeople(){
   if(!NET.room){$('#people').innerHTML='';return}
@@ -1160,7 +1174,7 @@ function renderReveal(){
   }
   const i=Math.min(R.step,R.contests.length-1);const c=R.contests[i];
   if(!c){box.innerHTML='<p>抽選を終えています…</p>';return}
-  const [pid,ts,w,env]=c;const mineIn=t0&&ts.includes(t0);const e=env||{};
+  const [pid,ts,w,env]=c;const mineIn=t0&&ts.includes(t0);const myIn=ts.filter(x=>myTeams().includes(x));const e=env||{};
   const byEnv={};for(const [t,k] of Object.entries(e))byEnv[k]=t;
   const canDraw=mineIn&&!w&&e[t0]==null;
   const hitIdx=w?e[w]:null;
@@ -1169,10 +1183,10 @@ function renderReveal(){
   const tm=remainMs();
   let line;
   if(w)line=`<div><span class="stamp${mineIn&&w!==t0?' lose':''}">${mineIn?(w===t0?'交渉権確定':'外れ'):'交渉権確定'}</span><p style="margin:8px 0 0">当たりは封筒${hitIdx+1}。${TN[w]}が交渉権を獲得しました。</p></div>`;
-  else if(canDraw)line=`<p style="margin:0"><b>封筒を1つ選んでください。</b>当たりは${ts.length}つのうち1つ。${tm!=null?`残り <span class="num">${fmt(tm)}</span>（時間切れは自動）`:''}</p>`;
+  else if(canDraw)line=`<p style="margin:0"><b>${myIn.length>1?TN[t0]+'の':''}封筒を1つ選んでください。</b>当たりは${ts.length}つのうち1つ。${tm!=null?`残り <span class="num">${fmt(tm)}</span>（時間切れは自動）`:''}</p>`;
   else line=`<p style="margin:0">${mineIn?'封筒を選びました。ほかの球団を待っています…':'各球団が封筒を選んでいます…'}${tm!=null?` 残り <span class="num">${fmt(tm)}</span>`:''}<br><span class="muted" style="font-size:12.5px">担当者がいない球団は、最後に残った封筒を自動で引きます。</span></p>`;
   box.innerHTML=`<p class="muted num" style="margin:0">抽選 ${i+1} / ${R.contests.length}</p><div class="who-big">${esc(P[pid].n)}</div><div class="muted">${esc(P[pid].t)}・${POSL[P[pid].pos]}</div>
-    <div class="bidders">${ts.map(t=>`<span class="${t===t0?'d':''}${w===t?' win':''}">${TN[t]}${ST.seats[t]?'':'（自動）'}</span>`).join('')}</div>
+    <div class="bidders">${ts.map(t=>`<span class="${myTeams().includes(t)?'d':''}${w===t?' win':''}">${TN[t]}${ST.seats[t]?'':'（自動）'}</span>`).join('')}</div>
     <div class="envs">${envs}</div>${line}`;
 }
 
@@ -1180,15 +1194,17 @@ function renderReveal(){
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');
   if(a){const id=+a.dataset.id;const t=myTeam();if(!t)return;
-    if(a.dataset.act==='bid'){L.actKind={kind:'bid',pid:id};if(NET.isHost)hostAct(t,'bid',id);else sendAct('bid',id);renderPool();renderMine();renderStatus()}
-    else{if(NET.isHost)hostAct(t,'pick',id);else{sendAct('pick',id);a.disabled=true;a.textContent='送信中…'}}
+    if(a.dataset.act==='bid'){L.bids[t]=id;doAct(t,'bid',id);const nx=myTeams().filter(x=>ST.pending.includes(x)&&x!==t&&!ST.bidsIn.includes(x)&&L.bids[x]==null)[0];L.active=nx||t;render()}
+    else{if(NET.isHost)hostAct(t,'pick',id);else{sendAct('pick',id,t);a.disabled=true;a.textContent='送信中…'}}
     return}
   const en=e.target.closest('[data-env]');
-  if(en&&!en.disabled){const t=myTeam();if(!t)return;const k=+en.dataset.env;if(NET.isHost)hostAct(t,'env',k);else{sendAct('env',k);en.disabled=true}return}
+  if(en&&!en.disabled){const t=myTeam();if(!t)return;const k=+en.dataset.env;if(NET.isHost)hostAct(t,'env',k);else{sendAct('env',k,t);en.disabled=true}return}
+  const sw=e.target.closest('[data-sw]');
+  if(sw){L.active=sw.dataset.sw;render();return}
   const sb=e.target.closest('[data-star]');
   if(sb){const p=P[+sb.dataset.star];STAR.has(p.n)?STAR.delete(p.n):STAR.add(p.n);saveStar();renderPool();renderMine();return}
   const st=e.target.closest('[data-seat]');
-  if(st){const t=st.dataset.seat;const mine=ST.seats[t]&&ST.seats[t]===NET.me;L.team=mine?null:t;pushPresence();renderLobby();return}
+  if(st){const t=st.dataset.seat;const mine=ST.seats[t]&&ST.seats[t]===NET.me;const i=L.teams.indexOf(t);if(mine||i>=0){L.teams=L.teams.filter(x=>x!==t)}else L.teams.push(t);pushPresence();renderLobby();renderMine();renderBoard();return}
   const seg=e.target.closest('.seg button');
   if(seg){const g=seg.parentElement;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===seg));
     if(g.id==='fColor'){ui.color=seg.dataset.v;renderBoard();return}
@@ -1206,7 +1222,7 @@ setInterval(()=>{if(ST.phase==='reveal')renderReveal();},1000);
 setInterval(()=>{const tm=$('#timer');const r=remainMs();if(tm&&r!=null){tm.textContent=fmt(r);tm.classList.toggle('low',r<30000)}
   if(!NET.isHost&&NET.room&&ST.phase!=='lobby'&&!hostPresent()){$('#msg').textContent='主催者との接続が切れています。再接続を待っています…'}},500);
 // after a pick is applied, clear pending act
-let lastV=-1,lastIter=-1;setInterval(()=>{if(ST.v!==lastV){lastV=ST.v;if(L.actKind&&L.actKind.kind==='pick'&&!canPick())L.actKind=null;if(L.actKind&&L.actKind.kind==='bid'&&(ST.phase!=='bid'||ST.iter!==lastIter))L.actKind=null;lastIter=ST.iter}},300);
+let lastV=-1,lastIter=-1;setInterval(()=>{if(ST.v!==lastV){lastV=ST.v;if(L.actKind&&L.actKind.kind==='pick'&&!canPick())L.actKind=null;if(L.actKind&&L.actKind.kind==='bid'&&(ST.phase!=='bid'||ST.iter!==lastIter))L.actKind=null;if(ST.phase!=='bid'||ST.iter!==lastIter){L.bids={};}lastIter=ST.iter}},300);
 render();
 (function(){const sl=$('#shareLine');if(!sl||!window.__ROOM_CODE)return;const url=location.origin+location.pathname+'?room='+encodeURIComponent(window.__ROOM_CODE);
   sl.innerHTML=`<span class="muted">合言葉：<b style="color:var(--ink)">${esc(window.__ROOM_CODE)}</b>　この部屋のURL：</span><input id="shareUrl" readonly value="${esc(url)}" style="flex:1 1 260px"><button class="btn small" id="copyUrl" data-label="URLをコピー">URLをコピー</button>`;
