@@ -1,11 +1,9 @@
-// Firebaseの「プロジェクトの設定」→「マイアプリ」→「SDK の設定と構成（構成）」に表示される値を、そのまま貼り付けてください。
-// databaseURL は Realtime Database を作ったあとに表示されます（https://〜.firebasedatabase.app または https://〜.firebaseio.com）。
 window.FIREBASE_CONFIG = {
-  apiKey: "xxxx",
-  authDomain: "xxxx.firebaseapp.com",
-  databaseURL: "https://xxxx-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "xxxx",
-  storageBucket: "xxxx.appspot.com",
-  messagingSenderId: "xxxx",
-  appId: "xxxx"
+  apiKey: "AIzaSyDT0WuT3MY_IXsoNeuwb1FdpDX-GYl8JDk",
+  authDomain: "draft2026-6b47c.firebaseapp.com",
+  databaseURL: "https://draft2026-6b47c-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "draft2026-6b47c",
+  storageBucket: "draft2026-6b47c.firebasestorage.app",
+  messagingSenderId: "887602803286",
+  appId: "1:887602803286:web:32752e591b4481fa6001f7"
 };
