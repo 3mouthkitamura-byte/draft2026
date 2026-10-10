@@ -118,7 +118,7 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
 .bidders span.now{background:var(--now)!important;color:#fff!important;border-color:var(--now)!important}
 .btn.nowbtn{background:var(--now);border-color:var(--now);color:#fff}
 .board td.d{box-shadow:inset 3px 0 0 var(--accent),inset -3px 0 0 var(--accent)}
-.board td.d:not([class*="k"]){background:var(--accent-soft)}
+.board td.d:not([class*="k"]):not([class*="p"]){background:var(--accent-soft)}
 .board-sec{display:flex;flex-direction:column;gap:10px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:12.5px}
 .legend i{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid var(--line);vertical-align:-2px;margin-right:4px}
@@ -159,6 +159,21 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
 /* lottery overlay */
 .overlay{position:fixed;inset:0;background:color-mix(in srgb,var(--paper) 70%,transparent);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
 .lot{background:var(--card);border:1px solid var(--line);border-radius:12px;max-width:560px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.lot.wide{max-width:760px}
+.flipgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.flip{perspective:700px;height:78px}
+.flip .in{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:flipit .7s ease forwards;animation-play-state:running}
+.flip .fa,.flip .ba{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 6px}
+.flip .fa{font-weight:900;font-size:17px;letter-spacing:.04em;box-shadow:inset 0 0 0 3px rgba(255,255,255,.35)}
+.flip .fa small{font-size:10px;font-weight:700;opacity:.8;letter-spacing:.1em}
+.flip .ba{transform:rotateY(180deg);background:var(--card);border:2px solid var(--line)}
+.flip .ba .tm{font-size:11px;font-weight:700;color:var(--muted)}
+.flip .ba .pn{font-size:16px;font-weight:900;line-height:1.25}
+.flip .ba .cf{font-size:10.5px;font-weight:800;color:#fff;background:#d62f24;border-radius:4px;padding:0 5px;margin-top:2px}
+.flip .ba.mine{border-color:var(--accent)}
+@keyframes flipit{from{transform:rotateY(0)}to{transform:rotateY(180deg)}}
+@media (prefers-reduced-motion:reduce){.flip .in{animation-duration:.01s}}
+.imgbox img{max-width:100%;border:1px solid var(--line);border-radius:8px}
 .lot .who-big{font-family:var(--display);font-size:26px}
 .bidders{display:flex;flex-wrap:wrap;gap:6px}
 .bidders span{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-weight:700;font-size:13px}
@@ -203,7 +218,7 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>みんなで仮想ドラフト2026 <span style="font-size:12px;font-weight:600;color:var(--muted,#888);vertical-align:middle">更新 10/10-C</span></h1>
+      <h1>みんなで仮想ドラフト2026 <span style="font-size:12px;font-weight:600;color:var(--muted,#888);vertical-align:middle">更新 10/11-A</span></h1>
       <p>参加者がそれぞれ自分のスマホやパソコンから球団を担当して、ドラフト会議をします。アカウントは不要です。人がいない球団は自動で指名。1位は全員同時に入札して抽選、2位以降はウェーバー方式（今年はパ・リーグ優先）、1回の持ち時間は3分です。</p>
     </div>
   </header>
@@ -270,7 +285,7 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
 
 <div class="wrap" style="padding-block:0 48px"><section class="panel board-sec" aria-labelledby="boardH">
   <div class="panel-head"><h2 id="boardH">12球団の指名ボード</h2>
-    <div class="seg" id="fColor" role="group" aria-label="色分け"><button data-v="pos" aria-pressed="true">ポジションで色分け</button><button data-v="cat">区分で色分け</button></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><div class="seg" id="fColor" role="group" aria-label="色分け"><button data-v="pos" aria-pressed="true">ポジションで色分け</button><button data-v="cat">区分で色分け</button></div><button class="btn small" id="saveBoardImg">画像で保存</button></div></div>
   <div class="legend" id="legend"></div>
   <div class="board-wrap"><table class="board" id="board"></table></div>
 </section></div>
@@ -973,7 +988,7 @@ function hostResolveBids(){
   ST.pending=ST.pending.filter(t=>!singles.some(s=>s[0]===t));
   ST.reveal={label:ST.iter===1?'1巡目':'外れ1位（'+ST.iter+'回目）',singles,contests,step:-1,bids:Object.entries(bids)};
   H.hits=contests.map(c=>Math.floor(Math.random()*c[1].length));H.drawDeadline=0;
-  ST.phase='reveal';H.nextAt=Date.now()+(contests.length?6000:5000);H.bids={};
+  ST.phase='reveal';H.nextAt=Date.now()+(ST.iter===1?Math.max(11500,REVEAL_MS*2.6):(contests.length?6000:5000));H.bids={};
   hostBroadcast(true);
 }
 function hostRevealStep(){
@@ -1184,9 +1199,11 @@ function renderReveal(){
   ov.hidden=false;const R=ST.reveal;const t0=myTeam();
   const bidList=R.bids.map(([t,pid])=>`<div>${TN[t]}：<b>${esc(P[pid].n)}</b>${ST.seats[t]?'':' <span class="muted">（自動）</span>'}</div>`).join('');
   if(R.step<0){
-    box.innerHTML=`<h2>${esc(R.label)} 入札結果</h2><div class="summary-list" style="font-size:13.5px">${bidList}</div>${R.contests.length?`<p style="margin:0"><b>${R.contests.length}件の競合</b>があります。まもなく抽選します。</p>`:'<p class="muted" style="margin:0">競合はありませんでした。</p>'}`;
+    const fl=R.label==='1巡目'&&R.bids.length?flipHTML('m'+R.bids.map(x=>x.join(':')).join(),R.bids,t=>myTeams().includes(t)):'';box.classList.toggle('wide',!!fl);
+    box.innerHTML=`<h2>${esc(R.label)} 入札結果</h2>${fl||`<div class="summary-list" style="font-size:13.5px">${bidList}</div>`}${R.contests.length?`<p style="margin:0"><b>${R.contests.length}件の競合</b>があります。まもなく抽選します。</p>`:'<p class="muted" style="margin:0">競合はありませんでした。</p>'}`;
     return;
   }
+  box.classList.remove('wide');
   const i=Math.min(R.step,R.contests.length-1);const c=R.contests[i];
   if(!c){box.innerHTML='<p>抽選を終えています…</p>';return}
   const [pid,ts,w,env]=c;const mineIn=t0&&ts.includes(t0);const myIn=ts.filter(x=>myTeams().includes(x));const e=env||{};
@@ -1243,6 +1260,53 @@ render();
   sl.innerHTML=`<span class="muted">合言葉：<b style="color:var(--ink)">${esc(window.__ROOM_CODE)}</b>　この部屋のURL：</span><input id="shareUrl" readonly value="${esc(url)}" style="flex:1 1 260px"><button class="btn small" id="copyUrl" data-label="URLをコピー">URLをコピー</button>`;
   $('#copyUrl').onclick=e=>copyText(url,e.currentTarget);})();
 connect();
+
+/* ---- 1位 flip reveal & board image ---- */
+const TCOL={T:['#f6c400','#111'],G:['#f97709','#fff'],DB:['#0a5fb4','#fff'],C:['#d7000f','#fff'],S:['#103c8c','#fff'],D:['#003595','#fff'],H:['#1b1b1b','#f6c400'],L:['#13285f','#fff'],F:['#00629b','#fff'],B:['#0c1f4f','#e7b20b'],M:['#222','#fff'],E:['#860010','#fff']};
+const FLIPT={};
+function flipHTML(key,entries,mineFn){
+  const st=FLIPT[key]||(FLIPT[key]=Date.now());const el=(Date.now()-st)/1000;
+  const cnt={};for(const [,pid] of entries)cnt[pid]=(cnt[pid]||0)+1;
+  const ord=[...entries].sort((a,b)=>WAIVER.indexOf(a[0])-WAIVER.indexOf(b[0]));
+  return `<div class="flipgrid">${ord.map(([t,pid],i)=>{const c=TCOL[t]||['#444','#fff'];const p=P[pid];
+    return `<div class="flip"><div class="in" style="animation-delay:${(0.6+i*0.55-el).toFixed(2)}s"><div class="fa" style="background:${c[0]};color:${c[1]}"><small>第1回選択希望選手</small>${TN[t]}</div><div class="ba${mineFn&&mineFn(t)?' mine':''}"><span class="tm">${TN[t]}</span><span class="pn">${esc(p.n)}</span>${cnt[pid]>1?`<span class="cf">${cnt[pid]}球団競合</span>`:'<span class="tm">'+esc(p.t)+'</span>'}</div></div></div>`}).join('')}</div>`;
+}
+function boardPNG(){
+  const rows=[...document.querySelectorAll('#board tr')];if(!rows.length)return null;
+  const S2=2,CW=132,C0=44,RH=50,HH=34,TOP=46;
+  const ncol=rows[0].children.length;const W=C0+CW*(ncol-1),H=TOP+HH+RH*(rows.length-1)+12;
+  const cv=document.createElement('canvas');cv.width=W*S2;cv.height=H*S2;const g=cv.getContext('2d');g.scale(S2,S2);
+  const cs=getComputedStyle(document.body);const bg=cs.backgroundColor||'#fff';const fg=cs.color||'#111';
+  g.fillStyle=bg;g.fillRect(0,0,W,H);
+  const FF='"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif';
+  g.fillStyle=fg;g.font=`800 17px ${FF}`;g.textBaseline='middle';g.fillText('仮想ドラフト2026　12球団の指名ボード',8,18);
+  const d=new Date();g.font=`500 11px ${FF}`;g.globalAlpha=.7;g.fillText(`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} 作成`,8,36);g.globalAlpha=1;
+  const fit=(t,max)=>{if(g.measureText(t).width<=max)return t;while(t.length>1&&g.measureText(t+'…').width>max)t=t.slice(0,-1);return t+'…'};
+  rows.forEach((tr,ri)=>{[...tr.children].forEach((cell,ci)=>{
+    const x=ci===0?0:C0+CW*(ci-1),y=ri===0?TOP:TOP+HH+RH*(ri-1),w=ci===0?C0:CW,h=ri===0?HH:RH;
+    const st=getComputedStyle(cell);let cb=st.backgroundColor;if(!cb||cb==='rgba(0, 0, 0, 0)'||cb==='transparent')cb=bg;
+    g.fillStyle=cb;g.fillRect(x,y,w,h);g.strokeStyle='rgba(128,128,128,.35)';g.lineWidth=1;g.strokeRect(x+.5,y+.5,w,h);
+    g.fillStyle=st.color||fg;
+    const bn=cell.querySelector('.bn'),bs=cell.querySelector('.bs');
+    if(bn){g.font=`800 13px ${FF}`;g.fillText(fit(bn.textContent+(cell.querySelector('.tag.j')?' Ⓙ':''),w-10),x+6,y+17);g.font=`500 10px ${FF}`;g.globalAlpha=.75;g.fillText(fit(bs?bs.textContent:'',w-10),x+6,y+36);g.globalAlpha=1}
+    else{const thn=cell.querySelector('.thn');let t=cell.textContent.trim();if(thn)t=t.replace(thn.textContent,'');g.font=`${ri===0||ci===0?800:500} ${ri===0?13:12}px ${FF}`;g.fillText(fit(t,w-10),x+6,y+h/2)}
+  })});
+  return cv.toDataURL('image/png');
+}
+function showBoardImage(){
+  const url=boardPNG();if(!url)return;
+  let ov=document.getElementById('imgov');
+  if(!ov){ov=document.createElement('div');ov.className='overlay';ov.id='imgov';document.body.appendChild(ov);ov.addEventListener('click',e=>{if(e.target===ov||e.target.closest('[data-close]'))ov.hidden=true})}
+  const d=new Date();const fn=`draft2026_board_${d.getMonth()+1}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}.png`;
+  ov.innerHTML=`<div class="lot wide imgbox" role="dialog" aria-modal="true"><h2 style="margin:0">指名ボードの画像</h2><img src="${url}" alt="12球団の指名ボード"><p class="muted" style="margin:0;font-size:12.5px">うまく保存できないときは、画像を長押し（パソコンは右クリック）して「画像を保存」してください。</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="dlBoard">画像をダウンロード</button><span class="muted" id="dlMsg" style="font-size:12.5px;align-self:center"></span><button class="btn" data-close>閉じる</button></div></div>`;
+  ov.hidden=false;
+  $('#dlBoard').onclick=async()=>{const msg=$('#dlMsg');
+    let dl=null;try{if(window.claude&&window.claude.use)dl=await window.claude.use('downloads')}catch(e){}
+    if(dl){try{const blob=await (await fetch(url)).blob();await dl.save({filename:fn,data:blob});msg.textContent='保存しました'}catch(e){msg.textContent=e&&e.code==='declined'?'':'保存できませんでした。画像を長押しして保存してください'}return}
+    const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove();};
+}
+document.addEventListener('click',e=>{if(e.target.closest('#saveBoardImg'))showBoardImage()});
+
 </script>
 
 </body></html>
