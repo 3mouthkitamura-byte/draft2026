@@ -1,0 +1,1248 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>みんなで仮想ドラフト2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+
+/* Layout: a draft-room desk — candidate pool on the left, the club's pick sheet and the 12-team board on the right; lottery runs in an in-page overlay. */
+:root{
+  --paper:#eef1f5; --card:#ffffff; --ink:#15213a; --muted:#5a6578; --line:#d6dce5;
+  --accent:#1d4fa6; --accent-soft:#e3ebf8; --accent-ink:#ffffff; --now:#d62f24; --now-soft:#fde4e1;
+  --gold:#a87a1f; --gold-soft:#f6edd9; --warn:#b4472f; --ok:#2f7a4f;
+  --k1:#dce7fa; --k2:#f6e5c3; --k3:#d6efdf; --k4:#f8d3cf; --p1:#f6c9c4; --p2:#fadbea; --p3:#d4e2fa; --p4:#f8eab8; --p5:#d9efc4;
+  --display:"Dela Gothic One","Hiragino Sans","Yu Gothic",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f1522; --card:#171f2f; --ink:#e5eaf2; --muted:#97a3b6; --line:#28334a;
+  --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220; --now:#ff5a4d; --now-soft:#4a1d1a;
+  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; --p1:#5a2420; --p2:#4f2440; --p3:#1f3560; --p4:#4d4216; --p5:#2c4a1e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1522; --card:#171f2f; --ink:#e5eaf2; --muted:#97a3b6; --line:#28334a;
+  --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220; --now:#ff5a4d; --now-soft:#4a1d1a;
+  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; --p1:#5a2420; --p2:#4f2440; --p3:#1f3560; --p4:#4d4216; --p5:#2c4a1e; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.6}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 16px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:clamp(22px,3.6vw,32px)}
+h2{font-size:18px}
+h3{font-size:15px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.top p{margin:4px 0 0;color:var(--muted);max-width:68ch}
+.btn{border:1px solid var(--line);background:var(--card);padding:7px 14px;border-radius:6px;font-weight:700}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.small{padding:4px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* status strip */
+.status{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:8px;padding:12px 16px}
+.status .phase{font-family:var(--display);font-size:20px;white-space:nowrap}
+.status .msg{min-width:0}
+.status .msg b{color:var(--accent)}
+@media (max-width:640px){.status{grid-template-columns:1fr}}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}.grid>.panel:last-child{order:-1}.pool{max-height:60vh}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:4px 10px;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.filters input[type=search]{border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:5px 10px;min-width:0;flex:1 1 140px;color:var(--ink)}
+.chk{display:inline-flex;gap:5px;align-items:center;font-size:13px;color:var(--muted)}
+
+/* pool rows */
+.pool{display:flex;flex-direction:column;max-height:70vh;overflow:auto;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line)}
+.row.taken{opacity:.5}
+.grade{font-family:var(--mono);font-weight:600;font-size:15px;text-align:center;border-radius:6px;padding:2px 0;background:var(--accent-soft);color:var(--accent)}
+.who{min-width:0}
+.who .nm{font-weight:700;font-size:15px}
+.who .meta{font-size:12.5px;color:var(--muted)}
+.who .note{font-size:12.5px;margin-top:1px}
+.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:4px;padding:0 5px;margin-left:5px;vertical-align:1px;border:1px solid currentColor}
+.tag.d2{color:var(--accent)}
+.tag.d1{color:var(--muted)}
+.tag.k{color:var(--gold)}
+.tag.gone{color:var(--warn)}
+.tag.j{color:var(--card);background:var(--ink);border-color:var(--ink)}
+
+/* pick sheet */
+.sheet{display:flex;flex-direction:column}
+.slot{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);align-items:center}
+.slot .rd{font-family:var(--display);font-size:15px;color:var(--accent)}
+.slot .empty{color:var(--muted)}
+.needs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.need{display:flex;gap:6px;align-items:center;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.need .mk{font-family:var(--mono);font-weight:600;width:16px;text-align:center}
+.need.ok{border-color:var(--ok)}
+.need.ok .mk{color:var(--ok)}
+.need .mk{color:var(--muted)}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:6px 12px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.board-wrap{overflow-x:auto}
+table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%}
+.board th,.board td{border:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top;white-space:nowrap}
+.board th{background:var(--paper);font-weight:700;white-space:nowrap}
+
+.board td .out{color:var(--muted)}
+.board .rh{font-family:var(--display);font-weight:400;white-space:nowrap}
+.board td.p1{background:var(--p1)}.board td.p2{background:var(--p2)}.board td.p3{background:var(--p3)}.board td.p4{background:var(--p4)}.board td.p5{background:var(--p5)}.board td.k1{background:var(--k1)}.board td.k2{background:var(--k2)}.board td.k3{background:var(--k3)}.board td.k4{background:var(--k4)}
+.board td .bn{font-weight:700;font-size:13px}
+.board td .bs{display:block;font-size:11px;color:var(--muted);line-height:1.3}
+.board th.d{background:var(--accent);color:var(--accent-ink)}
+.board th.now{background:var(--now)!important;color:#fff!important}.board td.nowcol{box-shadow:inset 3px 0 0 var(--now),inset -3px 0 0 var(--now)}
+.nowteam{display:inline-block;background:var(--now);color:#fff;font-weight:800;border-radius:6px;padding:3px 10px;margin-right:8px;font-size:15px;animation:nowp 1.6s ease-in-out infinite}
+@keyframes nowp{50%{box-shadow:0 0 0 5px var(--now-soft)}}
+.btn.now{background:var(--now);border-color:var(--now);color:#fff}
+.seat.now{border:2px solid var(--now)!important;background:var(--now-soft)!important}
+.sheethead.now{color:var(--now)}
+.bidders span.now{background:var(--now)!important;color:#fff!important;border-color:var(--now)!important}
+.btn.nowbtn{background:var(--now);border-color:var(--now);color:#fff}
+.board td.d{box-shadow:inset 3px 0 0 var(--accent),inset -3px 0 0 var(--accent)}
+.board td.d:not([class*="k"]){background:var(--accent-soft)}
+.board-sec{display:flex;flex-direction:column;gap:10px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:12.5px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid var(--line);vertical-align:-2px;margin-right:4px}
+.legend i.p1{background:var(--p1)}.legend i.p2{background:var(--p2)}.legend i.p3{background:var(--p3)}.legend i.p4{background:var(--p4)}.legend i.p5{background:var(--p5)}.legend i.k1{background:var(--k1)}.legend i.k2{background:var(--k2)}.legend i.k3{background:var(--k3)}.legend i.k4{background:var(--k4)}
+
+.log{max-height:60vh;overflow:auto;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.log div{padding:3px 0;border-bottom:1px solid var(--line)}
+.log .mine{color:var(--accent);font-weight:700}
+.log .sys{color:var(--muted)}
+
+.acts{display:flex;gap:6px;align-items:center}
+.star{border:1px solid var(--line);background:transparent;border-radius:6px;width:30px;height:28px;font-size:16px;line-height:1;color:var(--muted)}
+.star[aria-pressed="true"]{color:var(--gold);border-color:var(--gold);background:var(--gold-soft)}
+.mylist{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.mylist .mi{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13px}
+.mylist .mi span{min-width:0}
+.save{border:1px solid var(--accent);background:var(--accent-soft);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.save .line{display:flex;gap:8px;flex-wrap:wrap}
+.save input{flex:1 1 180px;min-width:0;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:6px 10px;font:inherit}
+.save .note{font-size:12.5px;color:var(--muted);margin:0}
+.save .ok{color:var(--ok);font-weight:700}
+.saved{display:flex;flex-direction:column;gap:10px}
+.sv{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.sv .hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.sv .nm{font-weight:700;font-size:15px}
+.sv ol{margin:0;padding-left:0;list-style:none;font-size:13px;display:grid;gap:2px}
+.sv ol li b{display:inline-block;width:2.6em;color:var(--accent);font-family:var(--display);font-weight:400}
+.sv .btns{display:flex;gap:6px;flex-wrap:wrap}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+#savedCount:not(:empty)::before{content:" "}
+.gonebox{border:1px solid var(--gold);background:var(--gold-soft);border-radius:8px;padding:10px 12px;font-size:13px}
+.gonebox ul{margin:4px 0 0;padding-left:18px}
+
+.rules{font-size:13px;color:var(--muted)}
+.rules summary{cursor:pointer;color:var(--ink);font-weight:700}
+.rules ol{margin:6px 0 0;padding-left:20px}
+
+/* lottery overlay */
+.overlay{position:fixed;inset:0;background:color-mix(in srgb,var(--paper) 70%,transparent);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.lot{background:var(--card);border:1px solid var(--line);border-radius:12px;max-width:560px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.lot .who-big{font-family:var(--display);font-size:26px}
+.bidders{display:flex;flex-wrap:wrap;gap:6px}
+.bidders span{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-weight:700;font-size:13px}
+.bidders span.d{border-color:var(--accent);color:var(--accent)}
+.bidders span.win{background:var(--gold);border-color:var(--gold);color:var(--card)}
+.envs{display:flex;flex-wrap:wrap;gap:10px}
+.env{min-width:96px;padding:0 6px;height:56px;border:1px solid var(--line);border-radius:6px;background:var(--paper);position:relative;font-family:var(--display);font-size:13px}
+.env::before{content:"";position:absolute;left:0;right:0;top:0;height:50%;border-bottom:1px solid var(--line);clip-path:polygon(0 0,100% 0,50% 100%)}
+.env:hover:not(:disabled){border-color:var(--accent);transform:translateY(-2px)}
+.env.hit{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.stamp{display:inline-block;border:3px solid var(--gold);color:var(--gold);font-family:var(--display);padding:4px 12px;border-radius:6px;transform:rotate(-4deg);font-size:18px}
+.stamp.lose{border-color:var(--warn);color:var(--warn)}
+.result{display:flex;flex-direction:column;gap:12px}
+.summary-list{display:flex;flex-direction:column}
+@media (prefers-reduced-motion:reduce){.env:hover:not(:disabled){transform:none}}
+
+/* --- multiplayer additions --- */
+.seats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.seat{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--card);text-align:left;display:flex;flex-direction:column;gap:2px;min-height:58px}
+.seat .tn{font-weight:700}
+.seat .who{font-size:12.5px;color:var(--muted)}
+.teamsw{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+.seat.mine{border-color:var(--accent);background:var(--accent-soft)}
+.seat.taken:not(.mine){background:var(--paper)}
+.seat:disabled{cursor:default}
+.lobby{display:flex;flex-direction:column;gap:12px}
+.lobby .line{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lobby input{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:6px 10px;font:inherit;min-width:0;flex:0 1 220px}
+.board th .thn{display:block;font-size:11px;font-weight:500;opacity:.85}
+.timer{font-family:var(--mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.timer.low{color:var(--warn)}
+.people{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.people div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:3px 0}
+.notice{border:1px solid var(--gold);background:var(--gold-soft);border-radius:8px;padding:12px 14px;font-size:13.5px}
+.notice h3{margin-bottom:4px}
+.bidsin{display:flex;flex-wrap:wrap;gap:6px}
+.bidsin span{border:1px solid var(--line);border-radius:999px;padding:1px 9px;font-size:12.5px;font-weight:700}
+.bidsin span.done{background:var(--ok);border-color:var(--ok);color:var(--card)}
+.bidsin span.wait{color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>みんなで仮想ドラフト2026</h1>
+      <p>参加者がそれぞれ自分のスマホやパソコンから球団を担当して、ドラフト会議をします。アカウントは不要です。人がいない球団は自動で指名。1位は全員同時に入札して抽選、2位以降はウェーバー方式（今年はパ・リーグ優先）、1回の持ち時間は3分です。</p>
+    </div>
+  </header>
+  <p class="muted" style="margin:0;font-size:12.5px"><a href="index.html">トップへ</a>・<a href="solo.html">1人で遊ぶ（中日目線）</a></p>
+
+  <section class="status" aria-live="polite">
+    <div class="phase" id="phase">準備中</div>
+    <div class="msg" id="msg">接続しています…</div>
+    <div id="statusAct"></div>
+  </section>
+
+  <div id="noroom" hidden></div>
+
+  <section class="panel lobby" id="lobby" hidden>
+    <div class="panel-head"><h2>担当球団を選ぶ</h2><span class="muted" id="peopleCount"></span></div>
+    <div class="line">
+      <label for="nick" class="muted">ニックネーム</label>
+      <input id="nick" maxlength="8" placeholder="8文字まで">
+      <span class="muted" style="font-size:12.5px">ほかの参加者に表示されます</span>
+    </div>
+    <div class="line" id="shareLine"></div>
+    <div class="seats" id="seats"></div>
+    <div class="line" id="hostCtl"></div>
+  </section>
+
+  <div class="grid" id="game">
+    <section class="panel" aria-labelledby="poolH">
+      <div class="panel-head">
+        <h2 id="poolH">候補選手</h2>
+        <span class="muted num" id="poolCount"></span>
+      </div>
+      <div class="filters">
+        <div class="seg" id="fCat" role="group" aria-label="区分">
+          <button data-v="all" aria-pressed="true">全区分</button><button data-v="高">高校</button><button data-v="大">大学</button><button data-v="社">社会人</button><button data-v="独">独立</button>
+        </div>
+        <div class="seg" id="fPos" role="group" aria-label="ポジション">
+          <button data-v="all" aria-pressed="true">全員</button><button data-v="RHP">右投</button><button data-v="LHP">左投</button><button data-v="C">捕</button><button data-v="IF">内</button><button data-v="OF">外</button>
+        </div>
+        <input type="search" id="fq" placeholder="名前・所属で検索" aria-label="名前・所属で検索">
+        <label class="chk"><input type="checkbox" id="fStar">リストアップのみ</label>
+        <label class="chk"><input type="checkbox" id="fTaken">指名済みも表示</label>
+      </div>
+      <div class="pool" id="pool"></div>
+      <p class="muted" style="margin:0;font-size:12px">評価値は報道をもとにした目安。<span class="tag d2" style="margin:0">中日◎</span><span class="tag d1" style="margin:0">中日○</span>＝中日スカウトの関心、<span class="tag j" style="margin:0">J</span>＝日本代表経験。☆でリストアップに追加（このブラウザに保存）。</p>
+    </section>
+
+    <section class="panel">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="mine">自分の球団</button>
+        <button role="tab" aria-selected="false" data-tab="people">参加者</button>
+        <button role="tab" aria-selected="false" data-tab="log">指名ログ</button>
+      </div>
+      <div id="tab-mine" style="display:flex;flex-direction:column;gap:12px">
+        <div id="bidsin"></div>
+        <div id="mylist"></div>
+        <div class="sheet" id="sheet"></div>
+        <div id="copyBox"></div>
+      </div>
+      <div id="tab-people" hidden><div class="people" id="people"></div></div>
+      <div id="tab-log" hidden><div class="log" id="log"></div></div>
+    </section>
+  </div>
+</div>
+
+<div class="wrap" style="padding-block:0 48px"><section class="panel board-sec" aria-labelledby="boardH">
+  <div class="panel-head"><h2 id="boardH">12球団の指名ボード</h2>
+    <div class="seg" id="fColor" role="group" aria-label="色分け"><button data-v="pos" aria-pressed="true">ポジションで色分け</button><button data-v="cat">区分で色分け</button></div></div>
+  <div class="legend" id="legend"></div>
+  <div class="board-wrap"><table class="board" id="board"></table></div>
+</section></div>
+
+<div class="overlay" id="overlay" hidden><div class="lot" id="lot" role="dialog" aria-modal="true"></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* Firebase Realtime Database adapter: provides the same room/user interface the game uses */
+(function(){
+  const params=new URLSearchParams(location.search);
+  const code=(params.get('room')||'').toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,24);
+  window.__ROOM_CODE=code;
+  window.__FB_OK=!!(window.firebase&&window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.databaseURL&&!/xxxx/.test(window.FIREBASE_CONFIG.databaseURL));
+  if(!code||!window.__FB_OK)return;
+  try{if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG)}catch(e){window.__FB_OK=false;return}
+  const db=firebase.database();const base=db.ref('rooms/'+code);
+  const me='p'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+  const TS=firebase.database.ServerValue.TIMESTAMP;
+  let peers={},myPres={},connected=false;const topicH={},peerH=[],connH=[];
+  const myRef=base.child('players/'+me);
+  const parse=s=>{try{return JSON.parse(s)}catch(e){return {}}};
+  const snap=()=>Object.entries(peers).map(([peer,v])=>Object.freeze({peer,by:null,isMe:peer===me,sameTab:peer===me,kind:'viewer',guest:false,presence:Object.freeze(parse(v.p)),updatedAt:v.t||0}));
+  base.child('players').on('value',s=>{
+    const v=s.val()||{};const old=peers;peers=v;
+    const joined=Object.keys(v).filter(k=>!old[k]),left=Object.keys(old).filter(k=>!v[k]),updated=Object.keys(v).filter(k=>old[k]&&old[k].p!==v[k].p);
+    const ps=snap();const f=a=>ps.filter(p=>a.includes(p.peer));
+    peerH.forEach(h=>{try{h({peers:ps,joined:f(joined),left:left.map(peer=>({peer})),updated:f(updated)})}catch(e){console.error(e)}});
+  });
+  const onEv=s=>{const v=s.val();if(!v||typeof v.d!=='string')return;const m={topic:s.key,data:parse(v.d),peer:v.p,by:null,isMe:v.p===me,sameTab:v.p===me,kind:'viewer',guest:false};(topicH[s.key]||[]).forEach(h=>{try{h(m)}catch(e){console.error(e)}})};
+  base.child('events').on('child_added',onEv);base.child('events').on('child_changed',onEv);
+  db.ref('.info/connected').on('value',s=>{connected=!!s.val();if(connected){myRef.onDisconnect().remove();myRef.set({p:JSON.stringify(myPres),t:TS})}connH.forEach(h=>h(connected))});
+  const room={
+    emit:async(topic,data)=>{await base.child('events/'+topic).set({d:JSON.stringify(data),p:me,t:TS})},
+    on:(t,h)=>{(topicH[t]=topicH[t]||[]).push(h);return()=>{}},
+    presence:async(p)=>{myPres={...myPres,...p};for(const k of Object.keys(myPres))if(myPres[k]===null)delete myPres[k];await myRef.set({p:JSON.stringify(myPres),t:TS})},
+    peers:()=>snap(),
+    onPeers:h=>{peerH.push(h);setTimeout(()=>{const ps=snap();h({peers:ps,joined:ps,left:[],updated:[]})},0);return()=>{}},
+    connected:()=>connected,
+    onConnection:h=>{connH.push(h);setTimeout(()=>h(connected),0);return()=>{}}
+  };
+  const user={canEdit:async()=>true,id:async()=>me,isOwner:async()=>false};
+  window.claude={use:async n=>n==='room'?room:n==='user'?user:null};
+})();
+</script>
+<script>
+const TEAMS=[
+ {id:'T',n:'阪神'},{id:'G',n:'巨人'},{id:'DB',n:'DeNA'},{id:'C',n:'広島'},{id:'S',n:'ヤクルト'},{id:'D',n:'中日'},
+ {id:'H',n:'ソフトバンク'},{id:'L',n:'西武'},{id:'F',n:'日本ハム'},{id:'B',n:'オリックス'},{id:'M',n:'ロッテ'},{id:'E',n:'楽天'}];
+const TN=Object.fromEntries(TEAMS.map(t=>[t.id,t.n]));
+const WAIVER=['E','D','M','S','B','C','F','DB','L','G','H','T'];
+const REV=[...WAIVER].reverse();
+const DRAW_MS=60000;
+const ROUNDS=7, TURN_MS=180000, AI_DELAY=900, REVEAL_MS=4500;
+const POSL={RHP:'投手・右',LHP:'投手・左',C:'捕手',IF:'内野手',OF:'外野手',TW:'投手・内野手'};
+const POSA={RHP:'投手',LHP:'投手',C:'捕手',IF:'内野手',OF:'外野手',TW:'投手'};
+const CATL={'高':'高校','大':'大学','社':'社会人','独':'独立'};
+const RAW=[
+["織田翔希", "横浜高", "高", "RHP", "S", 97, 2, 1, "最速157km。中日「トップの評価」。10/15に進路表明"],
+["渡部海", "青山学院大", "大", "C", "", 93, 1, 0, "アマNo.1捕手。阪神の本命"],
+["菰田陽生", "山梨学院", "高", "TW", "S", 92, 2, 0, "195cmの二刀流。中日の1位候補4人に"],
+["鈴木泰成", "青山学院大", "大", "RHP", "S", 92, 2, 0, "最速154km。即戦力の先発。中日の1位候補4人に"],
+["米沢友翔", "関西大", "大", "LHP", "S", 91, 2, 1, "中日「金丸と同等に近い評価」"],
+["宮原廉", "近畿大", "大", "RHP", "S", 89, 1, 0, "最速156km。将来160kmの声も"],
+["榊原七斗", "明治大", "大", "OF", "", 88, 1, 1, "「ネクスト近本」。走攻守の中堅手。中日なども視察"],
+["有馬伽久", "立命館大", "大", "LHP", "S", 88, 2, 1, "愛工大名電出身。決め球が多彩"],
+["末吉良丞", "沖縄尚学", "高", "LHP", "S", 86, 1, 1, "甲子園優勝左腕・最速150km"],
+["平田玲翔", "大分商", "高", "RHP", "S", 85, 2, 1, "188cm・最速152km。6球団が高評価、制球が課題"],
+["春山陽登", "大阪商業大", "大", "OF", "", 84, 1, 1, "リーグ通算本塁打記録に並ぶ長距離砲。中日が視察"],
+["山里宝", "亜細亜大", "大", "IF", "", 83, 2, 1, "中日「走攻守がそろう」大学No.1遊撃手"],
+["柿本晟弥", "パナソニック", "社", "RHP", "SR", 83, 1, 1, "最速151〜153km。中日が5人で視察"],
+["池田聖摩", "横浜高", "高", "IF", "", 82, 1, 1, "50m5.9秒・強肩の遊撃手。2〜3位評価"],
+["前嶋藍", "亜細亜大", "大", "C", "", 82, 0, 1, "二塁送球1.8秒台。谷繁を思わせる強肩強打"],
+["西野啓也", "立命館大", "大", "C", "", 81, 0, 1, "強肩（二塁送球1.8〜1.9秒台）、春のリーグ首位打者（.348）。右手指を脱臼しながら出場し5打点"],
+["前田侑大", "高岡第一", "高", "LHP", "S", 80, 1, 1, "小柄ながら最速156km"],
+["佐藤悠太", "東北福祉大", "大", "OF", "", 78, 0, 1, "全日本MVP。左肩手術明け"],
+["広池浩成", "慶應義塾大", "大", "RHP", "SR", 76, 0, 0, "最速156kmの救援型"],
+["磯貝和賢", "ホンダ", "社", "RHP", "R", 76, 0, 1, "185cm・最速157kmのパワー型救援。中部大第一→中京大の愛知出身、トミー・ジョン手術から復活"],
+["黒田義信", "東日本国際大", "大", "OF", "", 75, 0, 1, "選球眼とミート力は大学屈指"],
+["仲井慎", "駒澤大", "大", "RHP", "S", 80, 2, 0, "最速158km。中日・永野チーフ「上位候補じゃないか」"],
+["牟禮翔", "九州国際大付", "高", "OF", "", 74, 2, 0, "通算25発。中日・三瀬「典型的なスラッガータイプ。1年間追いかけたい」（2025年）"],
+["田中皐晴", "日南学園", "高", "OF", "", 74, 0, 0, "甲子園で打率.667「大会No.1」の強打者"],
+["福原聖矢", "明治大", "大", "C", "", 74, 0, 1, "167cm、50m6.5秒の動ける捕手"],
+["岡田啓吾", "明治大", "大", "IF", "", 74, 0, 1, "天性の脚力を持つ二塁手"],
+["星野世那", "大阪商業大", "大", "LHP", "S", 76, 1, 0, "最速151km左腕。中日が視察"],
+["沢山優介", "ヤマハ", "社", "LHP", "R", 74, 0, 1, "最速152km。WBCブラジル代表、2年連続指名漏れ"],
+["光弘帆高", "明治大", "大", "IF", "", 73, 0, 1, "守備型の遊撃手"],
+["松崎公亮", "東京ガス", "社", "RHP", "SR", 73, 0, 0, "185cmの本格派"],
+["森煌誠", "NTT東日本", "社", "RHP", "SR", 73, 0, 0, "力のある直球"],
+["近藤琉唯斗", "小樽双葉", "高", "RHP", "S", 72, 0, 0, "最速152km"],
+["田中諒", "日大三", "高", "C", "", 72, 1, 0, "日大三の強打の捕手（一塁も）。高校通算25発。中日など視察"],
+["保西雅則", "日本航空石川", "高", "RHP", "S", 72, 1, 0, "190cm・最速153kmの二刀流。中日が視察"],
+["渡辺和大", "慶應義塾大", "大", "LHP", "S", 86, 2, 0, "最速151kmの左腕。中日の1位候補4人に。巨人も「1位あり得る」"],
+["松本直", "明治大", "大", "RHP", "S", 72, 0, 0, "最速153km。がっちりした体格"],
+["ハッブス大起", "ENEOS", "社", "RHP", "SR", 72, 0, 0, "185cmの右腕"],
+["川原嗣貴", "ホンダ鈴鹿", "社", "RHP", "SR", 72, 0, 0, "重い直球と多彩な変化球"],
+["丹羽涼介", "市和歌山", "高", "RHP", "S", 71, 2, 0, "中日・山田「直球の質が良くなっている、先発型」、清水「やっぱりいい投手」"],
+["杉本真滉", "智弁学園", "高", "LHP", "S", 72, 2, 0, "センバツ準V左腕。中日・永野チーフ「野球脳が高い」「試合の中で修正ができる」"],
+["猪俣駿太", "東北福祉大", "大", "RHP", "SR", 70, 0, 0, "最速155km。先発・救援兼務"],
+["寺尾拳聖", "早稲田大", "大", "OF", "", 70, 0, 0, "右の強打者"],
+["樋口新", "王子", "社", "LHP", "SR", 70, 2, 0, "多彩な変化球。中日・永野チーフ「打球が上がらないのはいい投手の要素」"],
+["清水智裕", "ヤマハ", "社", "C", "", 70, 0, 0, "182cm・92kgの社会人捕手"],
+["藤澤涼介", "東京ガス", "社", "OF", "", 70, 0, 0, "184cmの社会人外野手"],
+["上原裕樹", "オイシックス", "独", "OF", "", 70, 0, 0, "俊足とパンチ力を兼ねる"],
+["柳舘憲吾", "日本新薬", "社", "IF", "", 69, 0, 0, "左打ちの社会人内野手"],
+["内藤蒼", "浦和学院", "高", "C", "", 68, 0, 1, "通算7発・二塁送球1.8秒台"],
+["角田楓斗", "富士大", "大", "RHP", "S", 70, 1, 0, "最速153km。3安打完封で優勝、中日が視察"],
+["長屋竣大", "ENEOS", "社", "RHP", "R", 70, 0, 1, "23歳・最速154kmの救援右腕。立命大出身、大学4年でトミー・ジョン手術→入社1年目はリハビリ。10/2の日本選手権予選で2回無失点"],
+["谷内隆悟", "エイジェック", "社", "RHP", "R", 68, 0, 0, "スピンの効いた直球"],
+["真野凜風", "日本生命", "社", "RHP", "SR", 68, 0, 0, "最速152km。大学で硬式に転向し開花"],
+["飯山志夢", "ENEOS", "社", "OF", "", 67, 0, 0, "左打ちの外野手"],
+["田山纏", "仙台育英", "高", "OF", "", 66, 1, 1, "左打席から左右に長打。中日が注目"],
+["石橋淳輝", "大商大堺", "高", "IF", "", 66, 0, 0, "187cm・通算34発の三塁手"],
+["宮城誇南", "早稲田大", "大", "LHP", "S", 66, 0, 0, "テンポの良い左腕"],
+["鎌田州真", "徳島インディゴソックス", "独", "RHP", "R", 64, 0, 0, "186cm・最速154km。国士舘大出身の即戦力リリーフ候補"],
+["印出太一", "三菱重工East", "社", "C", "", 66, 0, 0, "名門で培った統率力"],
+["中津大和", "日本生命", "社", "OF", "", 66, 1, 0, "日本生命の中堅手（遊撃も）。小松大谷→法政大、右投左打。スピードとパワーを兼ねた1番打者。中日など5球団が視察"],
+["吉野蓮", "セガサミー", "社", "RHP", "R", 65, 0, 0, "フォークで三振を取る"],
+["佐伯真聡", "花咲徳栄", "高", "C", "", 64, 0, 0, "強肩強打の4番捕手"],
+["林晃成", "桐光学園", "高", "RHP", "S", 64, 0, 0, "190cmの素材型"],
+["辻村大我", "東北福祉大", "大", "OF", "", 64, 0, 0, "左打ちの三拍子そろった外野手"],
+["吉川凌平", "千葉商科大", "大", "RHP", "S", 74, 2, 1, "最速156km。12K完封、中日・永野チーフ「投げるスタミナと体のバランスがいい」。12球団が調査書、MLB3球団も視察"],
+["藤森康淳", "法政大", "大", "OF", "", 64, 0, 0, "1番を打つ俊足巧打の中堅手（内野も）"],
+["三浦遼大", "茨城アストロプラネッツ", "独", "RHP", "R", 64, 0, 0, "最速155kmの速球派"],
+["杉崎成", "JR東日本", "社", "IF", "", 64, 0, 0, "ミート力に優れた巧打者"],
+["松野暖", "上田西", "高", "C", "", 63, 0, 0, "二塁送球1.86秒"],
+["若藤芽空", "高川学園", "高", "IF", "", 63, 0, 1, "1番を打つ俊足・堅守・巧打"],
+["小島慎也", "東北福祉大", "大", "IF", "", 63, 0, 0, "打撃が売りの三塁手"],
+["内海優太", "明治大", "大", "OF", "", 63, 0, 0, "打撃センスが光る左打ち"],
+["野原元気", "京都産業大", "大", "RHP", "SR", 63, 0, 0, "関西の右腕"],
+["柴崎聖人", "王子", "社", "OF", "", 63, 1, 0, "三拍子そろう外野手、社会人ベストナイン。中日が評価との報道"],
+["水口煌太朗", "常総学院", "高", "IF", "", 64, 0, 1, "遠投110mの強肩遊撃手で主将。「守備力は高校生でハイレベル、スイングも強い」。巨人・広島・オリックス・楽天が視察"],
+["森田惺", "桐生第一", "高", "C", "", 62, 0, 0, "二塁送球1.8〜1.9秒台の小柄な強肩"],
+["村雲脩吾", "敦賀気比", "高", "C", "", 62, 0, 0, "2年秋から正捕手"],
+["後藤幸樹", "沼津商", "高", "C", "", 62, 1, 0, "強肩強打の大型捕手。中日が来校を希望、春から練習も視察"],
+["斎藤蓉", "立教大", "大", "LHP", "SR", 64, 2, 0, "最速148km左腕。中日・松永「直球も来ていたし速いスライダーもいい」"],
+["黒川凌大", "花咲徳栄", "高", "RHP", "S", 61, 1, 0, "182cm・86kgの本格派。中日など7球団が視察"],
+["嶋武仁", "北越", "高", "OF", "", 60, 1, 0, "187cm・通算15発。中日・巨人・DeNAが視察"],
+["井樫太希", "北海学園大", "大", "IF", "", 60, 0, 0, "長打力のある一塁手"],
+["遠藤桃次郎", "BCリーグ", "独", "OF", "", 60, 0, 0, "スピードが武器の盗塁王"],
+["半杭奏太", "東農大二", "高", "IF", "", 59, 0, 0, "通算11発の遊撃手"],
+["西浦真平", "北海道文教大", "大", "IF", "", 59, 0, 0, "左打ちの大型外野手"],
+["八木月輝", "函館大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み"],
+["久保田晃士", "札幌大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["川満真", "青森大", "大", "OF", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["小金井凌生", "青森大", "大", "RHP", "SR", 58, 0, 0, "190cmのサイド気味右腕"],
+["斉藤主眞", "青森大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["木村駿介", "青森大", "大", "RHP", "SR", 58, 0, 0, "最速149kmのサイドハンド"],
+["遠藤怜太郎", "青森中央学院大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み"],
+["清田虎夢", "青森中央学院大", "大", "LHP", "SR", 55, 0, 0, "プロ志望届提出済み"],
+["井尻琉斗", "仙台大", "大", "C", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["金井翔陽", "東北福祉大", "大", "OF", "", 55, 0, 0, "プロ志望届提出済み"],
+["柴田由庵", "東北福祉大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["石橋春樹", "城西国際大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み"],
+["阿部竜也", "城西国際大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["小林飛雄馬", "城西国際大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["谷口晃介", "淑徳大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["葛西倖生", "中央学院大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["上床重隆", "駿河台大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["佐藤夏月", "共栄大", "大", "LHP", "SR", 56, 0, 0, "伸びしろが魅力の柔軟な左腕"],
+["沖村要", "慶應義塾大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["吉開鉄朗", "慶應義塾大", "大", "C", "", 55, 0, 0, "プロ志望届提出済み"],
+["小原大和", "慶應義塾大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["吉野太陽", "慶應義塾大", "大", "OF", "", 55, 0, 0, "プロ志望届提出済み"],
+["今津慶介", "慶應義塾大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投両打"],
+["落合智哉", "立教大", "大", "C", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["森本光紀", "立教大", "大", "LHP", "SR", 58, 0, 0, "最速147kmの救援左腕"],
+["香西一希", "早稲田大", "大", "LHP", "SR", 55, 0, 0, "プロ志望届提出済み・左投左打"],
+["衛藤航太朗", "順天堂大", "大", "C", "", 55, 0, 0, "プロ志望届提出済み"],
+["當山航大", "東京農業大", "大", "OF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["川尻啓人", "亜細亜大", "大", "RHP", "SR", 82, 1, 1, "最速158km。高岡商出身。楽天「今年見た中で一番」、ロッテ・中日などが上位候補と評価"],
+["比嘉佑斗", "亜細亜大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["赤堀颯", "國學院大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["南澤佑音", "國學院大", "大", "RHP", "SR", 58, 0, 0, "体格に恵まれたスリークォーター"],
+["江川颯太", "日本大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["田本聖貴", "駒澤大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["廣田翔馬", "駒澤大", "大", "C", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["高久塁", "日本大", "大", "C", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["伊藤櫂人", "中央大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["加藤宇", "明星大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["馬場拓海", "日本体育大", "大", "RHP", "SR", 68, 0, 1, "184cm・最速151kmのサイド気味右腕。福岡大大濠出身、出どころが見にくく球が強い"],
+["西平晴人", "日本体育大", "大", "LHP", "SR", 55, 0, 0, "プロ志望届提出済み・左投左打"],
+["生盛亜勇太", "日本体育大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["田代旭", "筑波大", "大", "C", "", 62, 0, 0, "二塁送球1.82秒の左打ち捕手"],
+["星野翔太", "城西大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["上杉隼大", "明治学院大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["羽村伊夏", "武蔵大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["廣田直士", "武蔵大", "大", "LHP", "SR", 55, 0, 0, "プロ志望届提出済み・左投左打"],
+["奥濱宏平", "大東文化大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["市村洸宜", "大東文化大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["塙光悟", "大東文化大", "大", "OF", "", 55, 0, 0, "プロ志望届提出済み"],
+["手塚悠護", "関東学院大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み"],
+["原崎雄陽", "関東学院大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["松平快聖", "神奈川大", "大", "RHP", "SR", 60, 1, 0, "神奈川大のサイドスロー。中日・楽天が視察"],
+["本間陸斗", "神奈川大", "大", "RHP", "SR", 62, 0, 0, "184cm・95kgの本格派"],
+["室田大和", "桐蔭横浜大", "大", "C", "", 55, 0, 0, "プロ志望届提出済み"],
+["坪井蒼汰", "桐蔭横浜大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["渡邊夏一", "桐蔭横浜大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["福浦与風", "桐蔭横浜大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み"],
+["岡村洸太郎", "愛知学院大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["山田康介", "愛知学院大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["福本一弥", "愛知学院大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["中川大雅", "至学館大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["岡田雅樹", "愛知工業大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["西垣玲音", "星城大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み"],
+["孫俊郎", "岐阜聖徳学園大", "大", "LHP", "SR", 63, 2, 0, "岐阜聖徳学園大の左腕。中日2軍戦で毎回奪三振、熊崎エリアチーフ「リストアップはしています」"],
+["土橋広夢", "日大国際関係学部", "大", "C", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["石川蒼", "日大国際関係学部", "大", "OF", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["池上昂希", "日大国際関係学部", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["鷲見拓哉", "中部学院大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み"],
+["髙井琉翔", "中部学院大", "大", "LHP", "SR", 55, 0, 0, "プロ志望届提出済み・左投左打"],
+["藤田泰聖", "朝日大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["向嶋大輔", "福井工業大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["土合章太", "福井工業大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["岩本剛生", "福井工業大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["飯田泰成", "関西学院大", "大", "LHP", "SR", 55, 0, 0, "プロ志望届提出済み・左投左打"],
+["新井亮規浩", "関西学院大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["中川将心", "関西学院大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["常深颯大", "大阪経済大", "大", "LHP", "SR", 63, 2, 0, "大阪経大の左腕。9球団視察、中日・岡野「先発も中継ぎもできる」"],
+["的場吏玖", "天理大", "大", "RHP", "SR", 60, 0, 0, "185cmの細身右腕"],
+["高田純誠", "大阪体育大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["村山勇太", "関西国際大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["正重恒太", "甲南大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["岡田光平", "大阪工業大", "大", "OF", "", 70, 2, 0, "184cm・左打ちの俊足スラッガー。2季連続首位打者、中日「打撃に癖がない」"],
+["近藤拓海", "奈良学園大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["野村亮輔", "佛教大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["小島一哲", "びわこ成蹊スポーツ大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["小松勇輝", "びわこ成蹊スポーツ大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["森田大翔", "花園大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["伊藤愛希", "吉備国際大", "大", "LHP", "SR", 55, 0, 0, "プロ志望届提出済み・左投左打"],
+["津田悠平", "西南学院大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["荒下晴人", "西南学院大", "大", "OF", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["佐々木大雅", "九州共立大", "大", "LHP", "SR", 55, 0, 0, "プロ志望届提出済み・左投左打"],
+["木切倉稜真", "日本経済大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投左打"],
+["坂田裕哉", "折尾愛真短期大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["古莊尊", "折尾愛真短期大", "大", "OF", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["黒木駿", "折尾愛真短期大", "大", "RHP", "SR", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["皆吉海翔", "長崎国際大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み・右投右打"],
+["三浦秀斗", "鵡川", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["北口晃大", "八戸学院光星", "高", "RHP", "S", 62, 2, 0, "八戸学院光星の長身右腕。中日・山田「上背があって素質型。非常に楽しみ」"],
+["高橋鳳舞", "遠野緑峰", "高", "C", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["許定捷", "盛岡大附", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["佐々木十央真", "花巻東", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["髙梨成仁", "髙畠", "高", "C", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["児玉寛大", "日大山形", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["進藤翔愛", "東北", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["須藤弘海", "東北生文大高", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み"],
+["谷苗佑真", "尚志", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["八木皇樹", "東日大昌平", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["仲本寛", "常磐大高", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["石沢夢叶", "霞ヶ浦", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["田村瑛輝", "関東学園大附", "高", "LHP", "S", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["金子蓮矢", "桐生第一", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み"],
+["堀田千暁", "伊奈学園総合", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み"],
+["水脇将大", "春日部共栄", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["亀田優次郎", "山村学園", "高", "LHP", "S", 60, 2, 0, "山村学園の左腕。中日・岡野が球の勢いと質を評価"],
+["青木広大", "浦和麗明", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["石黒幸孝", "千葉商", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["加賀谷一", "県千葉", "高", "LHP", "S", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["井上陵", "茂原北陵", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み"],
+["松岡史穏", "雪谷", "高", "RHP", "S", 60, 2, 0, "都立雪谷の右腕。中日・岡野「勢いのあるボールを投げていてよかった」"],
+["髙橋将大", "創価", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["山下隼", "成立学園", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み"],
+["三留宙", "平塚湘風", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["篠晴仁", "希望ケ丘", "高", "LHP", "S", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["菅野琢大", "日大藤沢", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["宮坂晃平", "日大藤沢", "高", "C", "", 54, 0, 0, "プロ志望届提出済み"],
+["武谷真矢", "光明相模原", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み"],
+["内藤崚", "上田西", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["岡崎来", "六日町", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["内田心温", "関根学園", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["松本晟羽", "関根学園", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み"],
+["工藤歩夢", "開志学園", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み"],
+["塚本悠希", "金沢学院大附", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み"],
+["滝崎翔", "金沢北陵", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["林威助", "福井工大福井", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["管田彪翔", "敦賀気比", "高", "LHP", "S", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["佐藤大介", "常葉大菊川", "高", "LHP", "S", 58, 1, 0, "常葉大菊川の左腕。中日が視察"],
+["比嘉玲", "愛知啓成", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み"],
+["作永樹", "星城", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["鈴木悠人", "関商工", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["小栗瑠夢", "土岐紅陵", "高", "C", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["鈴木悠悟", "中京", "高", "RHP", "S", 66, 2, 0, "中京（岐阜）の二刀流。中日が7人態勢で視察、山田「投打ともにセンスがある」、荒木本部長補佐も評価"],
+["高原永遠", "中京", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み"],
+["宮本紘成", "海星", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["由良蒼葉", "三重", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み"],
+["石川大介", "昴学園", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["北村龍臥", "白山", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み"],
+["羽白天真", "滋賀学園", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["西田櫂吏", "京都国際", "高", "LHP", "S", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["川島謙心", "龍谷大平安", "高", "RHP", "S", 60, 1, 0, "龍谷大平安の右腕。巨人・中日・DeNAが視察"],
+["新城楓雅", "奈良大附", "高", "RHP", "S", 58, 1, 0, "188cmの右腕。オリックス・DeNA・中日が視察"],
+["野﨑健友", "耐久", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["岸本隼輝", "慶風", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["安栖隼登", "履正社", "高", "C", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["柿谷樹希哉", "大阪学院大高", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["柳本純希", "大阪学院大高", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み"],
+["谷渕瑛仁", "大阪桐蔭", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["中西佳虎", "大阪桐蔭", "高", "C", "", 54, 0, 0, "プロ志望届提出済み・右投両打"],
+["岡本翔斗", "香里丘", "高", "RHP", "S", 66, 2, 0, "最速148kmの右腕。中日・永野「しなやかさが突出」、荒木「まだ良くなる」"],
+["田村琉聖", "日新", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["那須英翔", "関西創価", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["松田陽希", "松陰", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["𠮷井優都己", "松陰", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["内海皇城", "滝川二", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["森凛貴", "鳥取育英", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["大瀬良蒼空", "倉吉北", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み"],
+["木下瑛二", "高川学園", "高", "RHP", "S", 58, 0, 0, "178cmの右腕"],
+["柳井球汰", "宇部工", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["竹田一颯", "宇部鴻城", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["築山朔弥", "新田", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["黒川斗季", "海部", "高", "LHP", "S", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["中西健斗", "生光学園", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["北添颯志", "高知商", "高", "RHP", "S", 58, 0, 0, "182cmの右腕"],
+["田口朝陽", "折尾愛真", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み"],
+["平山護", "東筑", "高", "C", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["上間暉大", "祐誠", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み"],
+["山田瑛仁", "福岡工大城東", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["藤井悠貴", "新宮", "高", "RHP", "S", 62, 2, 0, "197cmの右腕。中日・三瀬「球速も上がってワンランク上がった」"],
+["家村孔大", "戸畑", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み"],
+["小坪碧人", "柳川", "高", "LHP", "S", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["宮田結冬", "文徳", "高", "C", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["岡本凰", "八代東", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["宮城介", "柳ヶ浦", "高", "LHP", "S", 54, 0, 0, "プロ志望届提出済み・左投左打"],
+["萩原甲真朗", "明豊", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["高田瑛大", "都城", "高", "IF", "", 60, 2, 0, "都城の遊撃手。中日・山田「フットワーク、ハンドリングの良さ」"],
+["田中彰人", "鵬翔", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み"],
+["長山武蔵", "日本ウェルネス沖縄", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み・右投左打"],
+["富盛恭太", "エナジックスポーツ", "高", "OF", "", 54, 0, 0, "プロ志望届提出済み・右投右打"],
+["福地楽偉門", "エナジックスポーツ", "高", "C", "", 54, 0, 0, "プロ志望届提出済み・両投左打"],
+["下堂翔史", "日本製鉄瀬戸内", "社", "RHP", "R", 66, 1, 0, "最速156kmのスリークォーター、救援主体。中日・ロッテなど6球団が視察"],
+["前田大輝", "姫路イーグレッターズ", "独", "RHP", "SR", 60, 1, 0, "最速151km、筑波大出身。中日など7球団が視察"],
+["相羽寛太", "ヤマハ", "社", "IF", "", 62, 0, 0, "守備が安定した遊撃手"],
+["高義博", "オイシックス", "独", "IF", "", 62, 0, 0, "45盗塁の俊足と堅い守備の遊撃手"],
+["田澤徹汰", "堺シュライクス", "独", "OF", "", 60, 0, 0, "53盗塁、俊足の1番・中堅"],
+["荒木隆之介", "茨城アストロプラネッツ", "独", "RHP", "SR", 63, 0, 0, "最速155kmのオーバースロー"],
+["肥田優心", "茨城アストロプラネッツ", "独", "RHP", "R", 58, 0, 0, "最速152km、直球主体の救援"],
+["林京平", "群馬ダイヤモンドペガサス", "独", "RHP", "SR", 58, 0, 0, "最速152km"],
+["平元銀次郎", "群馬ダイヤモンドペガサス", "独", "LHP", "SR", 60, 0, 0, "最速152kmの左腕、多彩な変化球"],
+["氏家蓮", "神奈川フューチャードリームス", "独", "RHP", "R", 57, 0, 0, "最速151km、高回転の直球"],
+["小田嶋優", "山梨ファイアーウインズ", "独", "RHP", "R", 59, 0, 0, "最速153kmの救援右腕"],
+["小林禅", "信濃グランセローズ", "独", "RHP", "R", 62, 0, 0, "最速157km。大学から投手に転向"],
+["道崎亮太", "富山GRNサンダーバーズ", "独", "RHP", "R", 56, 0, 0, "最速151km、準硬式経由"],
+["土岐尚史", "香川オリーブガイナーズ", "独", "LHP", "R", 58, 0, 0, "最速151kmの左腕"],
+["黒木大地", "徳島インディゴソックス", "独", "RHP", "R", 56, 0, 0, "最速150km、威力ある直球"],
+["瀧上春斗", "徳島インディゴソックス", "独", "LHP", "SR", 57, 0, 0, "最速144km。10球団が視察"],
+["山下健信", "徳島インディゴソックス", "独", "RHP", "SR", 62, 0, 0, "最速151～152km。関西大出身、四国ILでリーグ最優秀防御率。四死球が少ない"],
+["中嶋太一", "徳島インディゴソックス", "独", "RHP", "SR", 57, 0, 0, "最速151km"],
+["黒木優", "徳島インディゴソックス", "独", "RHP", "SR", 58, 0, 0, "最速152km、急成長中"],
+["山田空暉", "愛媛マンダリンパイレーツ", "独", "RHP", "R", 56, 0, 0, "最速151km"],
+["窪田寛之", "愛媛マンダリンパイレーツ", "独", "RHP", "R", 60, 0, 0, "最速154kmの救援専門"],
+["秋本璃空", "高知ファイティングドッグス", "独", "RHP", "SR", 58, 0, 0, "最速152km、多彩な変化球"],
+["渡邉都斗", "高知ファイティングドッグス", "独", "LHP", "R", 57, 0, 0, "最速150km、奪三振率が高い左腕"],
+["中圭佑", "堺シュライクス", "独", "RHP", "R", 57, 0, 0, "最速152km。投手転向後に成長"],
+["ピダーソン和紀", "火の国サラマンダーズ", "独", "RHP", "SR", 58, 0, 0, "最速152kmの大型右腕"],
+["細谷怜央", "オイシックス", "独", "RHP", "R", 57, 0, 0, "最速152km。トミー・ジョン手術から復帰"],
+["今井亮太", "オイシックス", "独", "RHP", "SR", 56, 0, 0, "最速150kmの長身スリークォーター"],
+["大生虎史", "ハヤテ", "独", "RHP", "SR", 60, 0, 0, "最速154kmの素材型"],
+["落合秀市", "ハヤテ", "独", "RHP", "SR", 61, 0, 0, "最速154km。馬力と器用さを兼備"],
+["佐藤友紀", "ハヤテ", "独", "RHP", "R", 58, 0, 0, "最速153kmのサイドハンド救援"],
+["渡邊隼輔", "徳島インディゴソックス", "独", "IF", "", 63, 0, 1, "20歳の強肩・俊足の遊撃手。遠投115m、50m5.9秒、右投両打。今季打率.270・30盗塁（成功率88%）"],
+["樫村佳歩", "セガサミー", "社", "RHP", "R", 68, 0, 0, "166cmで最速153km。水城→立正大、セガサミー廃部で1年目から指名可能に。10/3に4回無安打でNPB4球団視察"],
+["北嶋洸太", "北海道ガス", "社", "RHP", "R", 68, 0, 0, "駒大苫小牧→亜大2年目。指名漏れから最速155kmに成長した守護神。都市対抗の補強選手"],
+["奥村開", "日本新薬", "社", "RHP", "R", 67, 0, 0, "福井商→専大2年目。最速153km、29回連続無失点。フォークとカット。「プロに行きたい」"],
+["後藤凌寿", "トヨタ自動車", "社", "RHP", "S", 66, 2, 0, "四日市商→東北福祉大。最速155km、奪三振率11超だが四球多め。中日スカウト「もっと力で勝負できる」（2025年4月）"],
+["梅田健太郎", "ヤマハ", "社", "RHP", "R", 65, 0, 0, "最速153km。どこでも投げられる安定感のある救援"],
+["藤井優矢", "TDK", "社", "RHP", "SR", 65, 0, 0, "最速150km。変化球が多彩な総合力型"],
+["井上幹太", "NTT西日本", "社", "OF", "", 65, 0, 0, "金沢学院大出身の2年目。185cm・96kgの右投左打スラッガー。大学通算.400・14本"],
+["河北将太", "エイジェック", "社", "RHP", "R", 65, 0, 0, "東洋大出身。最速156kmの本格派"],
+["寺嶋大希", "NTT東日本", "社", "RHP", "S", 64, 0, 0, "愛工大名電の高卒4年目。最速148kmのホップする直球。スカウト「ドラフト候補として十分」"],
+["谷脇弘起", "日本生命", "社", "RHP", "S", 64, 0, 0, "立命大出身、2025年は指名漏れ。スライダーが武器の実戦派"],
+["今仲泰一", "ホンダ鈴鹿", "社", "RHP", "R", 63, 0, 0, "健大高崎出身。最速152km、10/3の日本選手権予選で3回無失点"],
+["島袋皓平", "大阪ガス", "社", "IF", "", 63, 0, 0, "遊撃手。37試合で打率.316・4本・10盗塁"],
+["栗田勇雅", "JR東日本", "社", "C", "", 63, 0, 0, "山梨学院→早大2年目。送球が速く、打撃も良い（打率.345）経験豊富な捕手"],
+["石沢大和", "日本製鉄室蘭シャークス", "社", "LHP", "S", 62, 0, 0, "3年目の左腕。最速148km、10/3に156球完投で複数球団が視察"],
+["長野健大", "JFE西日本", "社", "RHP", "S", 62, 0, 0, "2年目。最速148km、即戦力の総合力型"],
+["村上裕一郎", "ENEOS", "社", "OF", "", 62, 0, 0, "宇和島東→九州共立大3年目。185cm・95kgの大型強打者"],
+["熊田任洋", "トヨタ自動車", "社", "IF", "", 62, 0, 0, "東邦→早大3年目。遊撃・二塁・三塁をこなす左打ち"],
+["竹内翔汰", "日立製作所", "社", "OF", "", 61, 0, 0, "左打ちの出塁型。打率.337、出塁率.446、10盗塁"],
+["鵜沼魁斗", "日立製作所", "社", "OF", "", 61, 0, 0, "右打ちの外野手"],
+["神里陸", "ENEOS", "社", "C", "", 61, 0, 0, "東海大相模→国学院大2年目。守備型の両打ち捕手"],
+["有馬諒", "ENEOS", "社", "C", "", 61, 0, 0, "近江→関大3年目。インサイドワークに長けた捕手"],
+["松浦佑星", "ENEOS", "社", "IF", "", 61, 0, 0, "富島→日体大3年目。走攻守そろう1番・遊撃"],
+["生井惇己", "日立製作所", "社", "LHP", "SR", 61, 0, 0, "慶應義塾高の高卒4年目。最速152km、奪三振率10超だが四球多め"],
+["早坂一希", "JR東日本東北", "社", "LHP", "SR", 60, 0, 0, "東日本国際大出身3年目。最速150km、制球も安定"],
+["吉鶴翔瑛", "東芝", "社", "LHP", "SR", 60, 0, 0, "社会人の左腕"],
+["萩原義輝", "東芝", "社", "C", "", 60, 0, 0, "東海大相模→流経大3年目。二塁送球1.8秒台、出塁率.444"],
+["岩本龍之介", "JFE西日本", "社", "LHP", "R", 59, 0, 0, "最速152km。奪三振率11超の荒れ球型左腕"],
+["遠藤慎也", "日本新薬", "社", "RHP", "SR", 59, 0, 0, "最速153kmの右腕"],
+["児玉悠紀", "JR東日本", "社", "LHP", "R", 59, 0, 0, "社会人の左腕"],
+["石飛智洋", "日産自動車", "社", "C", "", 59, 0, 0, "左打ちの捕手"],
+["岳原陵河", "三菱自動車岡崎", "社", "OF", "", 59, 0, 0, "左打ちの外野手"],
+["菊地竜雅", "エイジェック", "社", "RHP", "R", 59, 0, 0, "最速156kmの剛腕"],
+["伊東光亮", "NTT東日本", "社", "IF", "", 58, 0, 0, "左打ちの内野手"],
+["佐々木大輔", "東邦ガス", "社", "IF", "", 58, 0, 0, "遊撃手"],
+["誉田貴之", "西濃運輸", "社", "C", "", 58, 0, 0, "都市対抗優勝チームの捕手"],
+["新川朝耶", "日立製作所", "社", "RHP", "R", 58, 0, 0, "最速154kmの右腕"],
+["山口謙作", "セガサミー", "社", "IF", "", 56, 0, 0, "上田西→中大。セガサミー廃部で指名可能に"],
+["立花祥希", "セガサミー", "社", "IF", "", 56, 0, 0, "横浜→国学院大。セガサミー廃部で指名可能に"],
+["山路将太郎", "パナソニック", "社", "IF", "", 56, 0, 0, "パナソニックは今季で休部。勝負強い打撃"],
+["石井康輝", "徳島インディゴソックス", "独", "RHP", "SR", 65, 0, 0, "箕面学園→近大。最速154km、鋭いフォーク、73回1/3で81奪三振。阪神2軍から3者連続三振"],
+["髙橋駿介", "愛媛マンダリンパイレーツ", "独", "OF", "", 64, 0, 0, "25歳、右投左打。リーグ新の21本塁打（打率.340・71打点・OPS1.084）。2025年は指名漏れ"],
+["金韓根", "茨城アストロプラネッツ", "独", "LHP", "S", 64, 0, 0, "最速150kmの左腕。今季9勝、4月の月間MVP。リーグ屈指の左腕"],
+["三河隼平", "香川オリーブガイナーズ", "独", "RHP", "SR", 62, 0, 0, "大森学園→高千穂大中退。最速153km"],
+["米山航平", "兵庫ブレイバーズ", "独", "OF", "", 61, 0, 0, "23歳・188cm100kg、右投左打。スイング速度160km/h、50m6.0秒の長距離砲"],
+["川平真也", "茨城アストロプラネッツ", "独", "RHP", "R", 61, 0, 0, "187cm・93kg。最速155km、救援時は特に球が速い"],
+["蜷川大", "香川オリーブガイナーズ", "独", "C", "", 60, 0, 0, "広陵→大商大。二塁送球1.75秒の強肩、リードの評価も高い"],
+["藤原佑", "徳島インディゴソックス", "独", "OF", "", 58, 0, 0, "20歳、大社高出身。50m5.95秒の俊足中堅手、25盗塁"],
+["関景介", "千葉スカイセイラーズ", "独", "RHP", "S", 58, 0, 0, "19歳。高校で体重25kg増、最速が32km伸びて145km。変化球が多彩"],
+["塩崎栄多", "ハヤテ", "独", "OF", "", 57, 0, 0, "183cm・87kg、右投左打。逆方向にも長打を打てる"],
+["岸本暖", "徳島インディゴソックス", "独", "C", "", 57, 0, 0, "3年目、打率3割近い強打の捕手"],
+["池田凜", "徳島インディゴソックス", "独", "IF", "", 57, 0, 0, "履正社→明治大。攻守のバランスが良い二塁手"],
+["福井聖理", "神奈川フューチャードリームス", "独", "LHP", "S", 57, 0, 0, "20歳。最速145km、平均球速が5km以上向上。チェンジアップが武器"],
+["嶋崎智慧", "徳島インディゴソックス", "独", "IF", "", 56, 0, 0, "19歳・181cm84kg。高校通算35発の大型遊撃手（投手兼任）"],
+["鈴木大士郎", "香川オリーブガイナーズ", "独", "OF", "", 56, 0, 0, "165cm、前期MVP。打率3割、本塁打・盗塁とも2桁"],
+["飯島寛登", "石川ミリオンスターズ", "独", "C", "", 56, 0, 0, "打率.391でリーグ新の首位打者。送球も速い捕手"],
+["東門寿哉", "徳島インディゴソックス", "独", "OF", "", 56, 0, 0, "右投左打。高校通算20発超、守備も堅実"],
+["小笠原天汰", "富山GRNサンダーバーズ", "独", "RHP", "SR", 56, 0, 0, "22歳、国士舘出身。最速148kmの力強い直球"],
+["間野勇翔", "石川ミリオンスターズ", "独", "OF", "", 55, 0, 0, "リーグ新の33盗塁で2年連続盗塁王。四球も多いリードオフマン"],
+["西野日向", "愛媛マンダリンパイレーツ", "独", "IF", "", 55, 0, 0, "168cm。二遊間・外野をこなす俊足、25盗塁"],
+["加田拓哉", "徳島インディゴソックス", "独", "OF", "", 55, 0, 0, "帝京→桐蔭横浜大。大学通算10発の外野手"],
+["寺井広大", "徳島インディゴソックス", "独", "IF", "", 55, 0, 0, "20歳・185cm100kg。一塁・外野の大型スラッガー候補"],
+["島村大樹", "高知ファイティングドッグス", "独", "IF", "", 55, 0, 0, "内外野と投手までこなすユーティリティ"],
+["中村星哉", "栃木ゴールデンブレーブス", "独", "IF", "", 55, 0, 0, "高卒世代の遊撃手"],
+["金子優馬", "高知ファイティングドッグス", "独", "IF", "", 55, 0, 0, "守備が堅実な若い遊撃手"],
+["関本勇輔", "徳島インディゴソックス", "独", "C", "", 55, 0, 0, "強打の捕手"],
+["坂本寅泰", "栃木ゴールデンブレーブス", "独", "OF", "", 55, 0, 0, "聖光学院→東洋大。高校通算47発の右の長距離砲"],
+["木村泰賀", "茨城アストロプラネッツ", "独", "OF", "", 55, 0, 0, "右投左打、外野・三塁。高校通算31発"],
+["平尾柊翔", "ハヤテ", "独", "OF", "", 55, 0, 0, "春日部共栄→八戸学院大。右投左打"],
+["森元彪向", "香川オリーブガイナーズ", "独", "OF", "", 55, 0, 0, "打球速度166.2km/hを記録した二刀流"],
+["中塚大輔", "信濃グランセローズ", "独", "IF", "", 55, 0, 0, "スイング動作の評価が高い内野手"],
+["田島蓮夢", "栃木ゴールデンブレーブス", "独", "OF", "", 55, 0, 0, "19歳、花咲徳栄出身。左打席から広角に長打"],
+["神谷虎之介", "千葉スカイセイラーズ", "独", "OF", "", 55, 0, 0, "19歳。高校通算38発、投げても最速148km"],
+["桂健斗", "徳島インディゴソックス", "独", "C", "", 55, 0, 0, "坂出高出身の高卒捕手"],
+["佐和田翔弥", "信濃グランセローズ", "独", "C", "", 55, 0, 0, "大阪観光大出身の捕手"],
+["長谷川康生", "三菱自動車倉敷オーシャンズ", "社", "LHP", "SR", 60, 0, 0, "玉野商工の高卒5年目。最速147kmの躍動感あるフォーム、直球の回転とスライダーが良い。制球が課題"],
+["谷川翔太", "三菱自動車倉敷オーシャンズ", "社", "C", "", 60, 0, 0, "立正大淞南の高卒4年目。強肩の捕手。ロッテ谷川唯人の弟"],
+["櫻内俊太", "エイジェック", "社", "C", "", 59, 0, 0, "市立船橋→国際武道大、大卒2年目の捕手"],
+["池本真人", "NTT東日本", "社", "IF", "", 58, 0, 0, "広陵の高卒3年目。180cmの大型内野手、三塁の定位置"],
+["岩本賢志", "JFE西日本", "社", "LHP", "SR", 57, 0, 0, "大阪桐蔭の高卒6年目の左腕"],
+["工藤波音", "JR東日本東北", "社", "IF", "", 56, 0, 0, "弘前南→駒澤大、大卒2年目の内野手。右投右打"],
+["和田泰征", "エイジェック", "社", "IF", "", 56, 0, 0, "習志野→東京農大、大卒2年目。都市対抗ベスト4チームの内野手"],
+["座間愛斗", "八王子実践", "高", "RHP", "S", 58, 0, 0, "プロ志望届提出済み・最速151km、素材型の右腕"],
+["西村拓海", "東邦", "高", "LHP", "S", 56, 0, 0, "プロ志望届提出済み・春の愛知大会で完封、防御率0.75"],
+["土山隼人", "聖カタリナ学園", "高", "RHP", "S", 55, 0, 0, "プロ志望届提出済み・投打二刀流のエース"],
+["小林璃空", "別海", "高", "RHP", "S", 54, 0, 0, "プロ志望届提出済み"],
+["長峰悠馬", "明聖", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み"],
+["桑山晃一", "國學院久我山", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み"],
+["中込大", "高岡第一", "高", "C", "", 55, 0, 0, "プロ志望届提出済み・打力のある左打ちの捕手"],
+["寺田琉希空", "金沢市工", "高", "IF", "", 54, 0, 0, "プロ志望届提出済み"],
+["高山侑大", "上武大", "大", "RHP", "SR", 70, 0, 0, "プロ志望届提出済み・最速154km。直球で押す"],
+["木口永翔", "上武大", "大", "RHP", "S", 72, 0, 0, "プロ志望届提出済み・最速151km、スリークォーター"],
+["伊藤颯希", "上武大", "大", "OF", "", 63, 0, 0, "プロ志望届提出済み・高校通算24発の右打ち"],
+["越井颯一郎", "早稲田大", "大", "RHP", "SR", 66, 0, 0, "プロ志望届提出済み・最速149km"],
+["壽田悠毅", "早稲田大", "大", "IF", "", 56, 0, 0, "プロ志望届提出済み・早実出身の巧打者"],
+["狩野太希", "北海道文教大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["嶋田翔太", "敬愛大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["関順一郎", "東京情報大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["河田ハウエルエバン盛児", "上武大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["高木亮輔", "日本ウェルネス大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["田中柊輝", "神奈川工科大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["若藤季柊", "同朋大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["雄龍人志", "名城大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["眞木海人", "中部学院大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["森岡颯太", "中京学院大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["松林幸紀", "大阪商業大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["鶴川内陽", "大阪商業大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["中谷悠太", "大阪商業大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["大塚和真", "大阪商業大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+["山本将吏", "神戸国際大", "大", "IF", "", 55, 0, 0, "プロ志望届提出済み"],
+];
+const P=RAW.map((r,i)=>({id:i,n:r[0],t:r[1],c:r[2],pos:r[3],role:r[4],g:r[5],d:r[6],k:!!r[7],note:r[8]}));
+const JREP={"織田翔希": "2026 U18高校日本代表", "前田侑大": "2026 U18高校日本代表", "鈴木悠悟": "2026 U18高校日本代表", "杉本真滉": "2026 U18高校日本代表", "池田聖摩": "2026 U18高校日本代表", "末吉良丞": "U18高校日本代表（2025・2026）", "鈴木泰成": "2026 大学日本代表", "馬場拓海": "2026 大学日本代表", "宮原廉": "2026 大学日本代表", "角田楓斗": "2026 大学日本代表", "星野世那": "2026 大学日本代表", "渡辺和大": "2026 大学日本代表", "猪俣駿太": "2026 大学日本代表", "米沢友翔": "2026 大学日本代表", "渡部海": "2026 大学日本代表（主将）", "前嶋藍": "2026 大学日本代表", "西野啓也": "2026 大学日本代表", "赤堀颯": "2026 大学日本代表", "岡田啓吾": "2026 大学日本代表", "山里宝": "2026 大学日本代表", "今津慶介": "2026 大学日本代表", "春山陽登": "2026 大学日本代表", "黒田義信": "2026 大学日本代表", "榊原七斗": "大学日本代表（2025・2026）", "樋口新": "2026 アジア競技大会 社会人日本代表", "柴崎聖人": "2026 アジア競技大会 社会人日本代表", "藤澤涼介": "2026 アジア競技大会 社会人日本代表", "谷脇弘起": "2026 アジア競技大会 社会人日本代表", "長野健大": "2026 アジア競技大会 社会人日本代表", "熊田任洋": "2026 アジア競技大会 社会人日本代表", "有馬諒": "2026 アジア競技大会 社会人日本代表", "長谷川康生": "2026 U-23日本代表", "谷川翔太": "2026 U-23日本代表", "櫻内俊太": "2026 U-23日本代表", "池本真人": "2026 U-23日本代表", "岩本賢志": "2026 U-23日本代表", "工藤波音": "2026 U-23日本代表", "和田泰征": "2026 U-23日本代表", "森煌誠": "2026 U-23日本代表", "川原嗣貴": "2026 U-23日本代表"};
+const jtag=n=>JREP[n]?`<span class="tag j" title="${JREP[n]}" aria-label="日本代表：${JREP[n]}">J</span>`:'';
+const byName=Object.fromEntries(P.map(p=>[p.n,p]));
+const AI={
+ T:{fav:[['渡部海', 0.85], ['米沢友翔', 0.15]],need:{RHP:1.08,LHP:1.05,C:1,IF:1.08,OF:1.08},cat:{'高':.97,'大':1.04,'社':1.04,'独':1},quota:{P:3,C:1,IF:2,OF:1},
+    like:['渡部海', '前嶋藍', '福原聖矢', '西野啓也', '田中諒', '鈴木泰成', '宮原廉', '有馬伽久', '米沢友翔', '織田翔希', '春山陽登', '佐藤悠太', '藤澤涼介', '仲井慎', '川島謙心', '岡本翔斗', '丹羽涼介', '新城楓雅', '松平快聖', '渡邊夏一', '星野世那', '渡辺和大', '佐藤大介', '沢山優介', '内藤蒼', '榊原七斗', '川尻啓人', '杉本真滉', '前田侑大', '菰田陽生', '柿本晟弥'],weak:['的場吏玖', '野原元気', '前田大輝', '常深颯大', '佐々木大雅', '後藤幸樹', '柴崎聖人', '岡田光平'],memo:'10/9会議で渡部海が1位本命（外れは前嶋）。捕手と即戦力投手が最優先、三塁・リードオフ型外野も'},
+ G:{fav:[['宮原廉', 0.5], ['鈴木泰成', 0.2], ['渡辺和大', 0.12], ['米沢友翔', 0.1], ['有馬伽久', 0.08]],need:{RHP:1.03,LHP:1.05,C:.95,IF:1.03,OF:1.15},cat:{'高':1,'大':1.02,'社':1.02,'独':.97},quota:{P:3,C:1,IF:1,OF:2},
+    like:['宮原廉', '鈴木泰成', '米沢友翔', '有馬伽久', '仲井慎', '織田翔希', '的場吏玖', '川島謙心', '柿本晟弥', '渡辺和大', '星野世那', '渡部海', '福原聖矢', '榊原七斗', '田中諒', '内藤蒼', '岡田啓吾', '池田聖摩', '春山陽登', '柴崎聖人', '牟禮翔', '平田玲翔'],weak:['岡本翔斗', '下堂翔史', '佐々木大雅', '常深颯大', '後藤幸樹', '森田惺', '石橋淳輝', '岡田光平'],memo:'1位は一本釣り狙いで宮原廉。渡辺和大も「1位あり得る」。若い外野手も最優先'},
+ DB:{fav:[['菰田陽生', 0.45], ['鈴木泰成', 0.25], ['織田翔希', 0.2], ['春山陽登', 0.1]],need:{RHP:1,LHP:1.1,C:.9,IF:1.03,OF:1.15},cat:{'高':1.03,'大':1.02,'社':1,'独':1},quota:{P:3,C:0,IF:1,OF:2},
+    like:['鈴木泰成', '宮原廉', '織田翔希', '的場吏玖', '川尻啓人', '仲井慎', '柿本晟弥', '有馬伽久', '米沢友翔', '渡辺和大', '常深颯大', '渡部海', '伊藤櫂人', '春山陽登', '新城楓雅', '平田玲翔', '丹羽涼介', '川島謙心', '杉本真滉', '末吉良丞', '亀田優次郎', '西田櫂吏', '牟禮翔', '田山纏', '佐藤悠太', '田中皐晴', '星野世那'],weak:['真野凜風', '岡本翔斗', '佐藤大介', '森田惺', '池田聖摩'],memo:'右打ちの外野手が危機的に不足、左投手も。1位は未報道（菰田・鈴木を想定）'},
+ C:{fav:[['織田翔希', 0.35], ['鈴木泰成', 0.25], ['宮原廉', 0.25], ['渡部海', 0.15]],need:{RHP:1.05,LHP:1.05,C:.95,IF:1.03,OF:1.15},cat:{'高':1,'大':1.03,'社':1,'独':.97},quota:{P:4,C:0,IF:1,OF:2},
+    like:['渡部海', '鈴木泰成', '宮原廉', '的場吏玖', '川尻啓人', '角田楓斗', '米沢友翔', '前嶋藍', '春山陽登', '有馬伽久', '水口煌太朗', '田中皐晴'],weak:['柿本晟弥', '藤井悠貴', '岡本翔斗', '川島謙心', '常深颯大', '佐藤大介', '中津大和'],memo:'10/9会議で1位は非公表。織田がプロ表明なら最有力、次いで鈴木・渡部・宮原。外野手の指名は必須'},
+ S:{fav:[['鈴木泰成', 0.35], ['宮原廉', 0.35], ['織田翔希', 0.2], ['有馬伽久', 0.1]],need:{RHP:1.12,LHP:1.12,C:.9,IF:1.12,OF:1.08},cat:{'高':.88,'大':1.05,'社':1.05,'独':1},quota:{P:3,C:0,IF:2,OF:2},
+    like:['宮原廉', '鈴木泰成', '織田翔希', '岡本翔斗', '松平快聖', '藤井悠貴', '有馬伽久', '渡辺和大', '亀田優次郎', '渡部海', '内藤蒼', '榊原七斗', '山里宝', '田中諒'],weak:['柿本晟弥', '川島謙心', '黒川凌大', '米沢友翔', '常深颯大', '佐藤大介', '長山武蔵', '春山陽登'],memo:'投手が全体に不足、強打の内野手。高校生投手は控えめ。1位は未報道'},
+ H:{fav:[['織田翔希', 0.75], ['宮原廉', 0.15], ['菰田陽生', 0.1]],need:{RHP:1.08,LHP:1.12,C:.9,IF:.9,OF:1.08},cat:{'高':1.12,'大':1,'社':.97,'独':1},quota:{P:4,C:0,IF:1,OF:2},
+    like:['牟禮翔', '織田翔希', '末吉良丞', '菰田陽生', '鈴木泰成', '有馬伽久', '渡部海', '宮原廉', '馬場拓海', '仲井慎', '角田楓斗', '丹羽涼介', '平田玲翔', '森本光紀', '杉本真滉', '前田侑大', '岡田啓吾', '長山武蔵', '内藤蒼', '岡本翔斗', '鈴木悠悟', '北添颯志', '藤井悠貴', '小坪碧人', '平山護'],weak:['的場吏玖', '柿本晟弥', '川島謙心', '新城楓雅', '佐々木大雅', '常深颯大', '佐藤大介', '後藤幸樹', '田中諒', '春山陽登'],memo:'1位は織田が最有力（宮原も高評価）。左投手、次世代の外野手。高校生を多く取る'},
+ L:{fav:[['織田翔希', 0.3], ['菰田陽生', 0.25], ['米沢友翔', 0.2], ['宮原廉', 0.15], ['山里宝', 0.1]],need:{RHP:1,LHP:1,C:.85,IF:1.15,OF:1.03},cat:{'高':1.02,'大':1.02,'社':1,'独':1},quota:{P:3,C:0,IF:2,OF:1},
+    like:['織田翔希', '平田玲翔', '米沢友翔', '春山陽登', '菰田陽生', '吉川凌平', '池田聖摩', '田中諒', '榊原七斗'],weak:['鈴木泰成', '岡本翔斗', '宮原廉', '川島謙心', '野﨑健友', '柿本晟弥', '仲井慎', '林晃成', '有馬伽久', '常深颯大', '佐藤大介'],memo:'内野手が最優先。菰田に7人態勢で視察。上位候補に吉川・菰田'},
+ F:{fav:[['織田翔希', 0.45], ['鈴木泰成', 0.2], ['有馬伽久', 0.15], ['米沢友翔', 0.1], ['平田玲翔', 0.1]],need:{RHP:.95,LHP:1.05,C:1.08,IF:1.08,OF:1.05},cat:{'高':1.1,'大':1,'社':.97,'独':1},quota:{P:3,C:1,IF:2,OF:1},
+    like:['有馬伽久', '鈴木泰成', '織田翔希', '米沢友翔', '平田玲翔', '菰田陽生', '角田楓斗', '宮原廉', '丹羽涼介', '藤井悠貴', '樋口新', '末吉良丞', '杉本真滉', '山里宝', '岡本翔斗', '那須英翔', '黒田義信', '柴崎聖人', '岡田光平', '内藤蒼'],weak:['的場吏玖', '仲井慎', '近藤琉唯斗', '柿本晟弥', '川島謙心', '常深颯大', '佐藤大介', '西田櫂吏', '春山陽登'],memo:'1位候補は約15人で大学生投手が多め。平田の評価がさらに上昇。若い捕手、左打ちの内野'},
+ B:{fav:[['米沢友翔', 0.3], ['有馬伽久', 0.25], ['鈴木泰成', 0.2], ['榊原七斗', 0.15], ['柿本晟弥', 0.1]],need:{RHP:1,LHP:1.08,C:1,IF:1,OF:1.15},cat:{'高':1.02,'大':1.02,'社':1.02,'独':1},quota:{P:3,C:1,IF:1,OF:2},
+    like:['柿本晟弥', '藤井悠貴', '渡邊夏一', '猪俣駿太', '林晃成', '黒川凌大', '渡辺和大', '有馬伽久', '末吉良丞', '米沢友翔', '佐藤悠太', '榊原七斗', '織田翔希', '岡本翔斗', '春山陽登'],weak:['鈴木泰成', '的場吏玖', '菰田陽生', '新城楓雅', '宮原廉', '下堂翔史', '前田大輝', '川島謙心', '杉本真滉', '佐藤大介', '石橋淳輝'],memo:'外野手（右打ち）が最優先、若い左投手。1位は未報道'},
+ M:{fav:[['織田翔希', 0.5], ['末吉良丞', 0.2], ['米沢友翔', 0.15], ['川尻啓人', 0.15]],need:{RHP:1.05,LHP:1.15,C:.95,IF:1.08,OF:.85},cat:{'高':1.05,'大':1,'社':1.02,'独':1},quota:{P:4,C:0,IF:2,OF:0},
+    like:['川尻啓人', '宮原廉', '榊原七斗', '柿本晟弥', '織田翔希', '的場吏玖', '鈴木泰成', '平田玲翔', '米沢友翔', '渡辺和大', '末吉良丞', '角田楓斗', '野村亮輔', '前嶋藍', '丹羽涼介', '岡本翔斗', '野﨑健友', '新城楓雅', '前田侑大', '星野世那', '常深颯大', '長山武蔵', '池田聖摩', '春山陽登', '吉川凌平', '菰田陽生', '有馬伽久', '沢山優介'],weak:['松平快聖', '川島謙心', '野原元気', '仲井慎', '杉本真滉', '佐藤大介'],memo:'競合覚悟でNo.1に挑む傾向。左投手と即戦力の中継ぎ、右打ちのパワー型内野手'},
+ E:{fav:[['鈴木泰成', 0.3], ['宮原廉', 0.2], ['渡部海', 0.2], ['川尻啓人', 0.15], ['吉川凌平', 0.15]],need:{RHP:1,LHP:1,C:1.05,IF:1.05,OF:1.15},cat:{'高':.9,'大':1.05,'社':1.05,'独':1},quota:{P:3,C:1,IF:1,OF:2},
+    like:['鈴木泰成', '渡部海', '川尻啓人', '有馬伽久', '織田翔希', '的場吏玖', '真野凜風', '川島謙心', '常深颯大', '沢山優介', '前田侑大', '藤森康淳', '藤澤涼介', '岡本翔斗', '鈴木悠悟', '岡田雅樹', '内藤蒼', '吉川凌平', '菰田陽生', '宮原廉', '米沢友翔', '春山陽登', '佐藤悠太', '黒田義信'],weak:['柿本晟弥', '松平快聖', '林晃成', '野﨑健友', '佐藤大介'],memo:'外野手が最優先、即戦力重視。GMが鈴木・渡部を視察、川尻を「上位候補」と評価'},
+};
+const END_PROB={2:0,3:0,4:0,5:.05,6:.2,7:.35};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const orderFor=r=>r%2===0?WAIVER:REV;
+
+/* ---------------- shared state helpers ---------------- */
+// state: {v, phase:'lobby'|'bid'|'reveal'|'draft'|'done', seats:{team:peer}, order:[[team,pid,round,flag]], ended:[team], iter, pending:[team], bidsIn:[team], reveal:{label,singles:[[team,pid]],contests:[[pid,[teams],winner|null]],step}, round, idx, cur, remain}
+function emptyState(){return {v:0,phase:'lobby',seats:{},order:[],ended:[],iter:1,pending:[],bidsIn:[],reveal:null,round:2,idx:0,cur:null,remain:null}}
+function takenSet(st){return new Set(st.order.map(o=>o[1]))}
+function teamPicks(st,t){return st.order.filter(o=>o[0]===t)}
+function pgrp(p){return (p.pos==='RHP'||p.pos==='LHP'||p.pos==='TW')?'P':p.pos}
+
+/* ---------------- AI (host only) ---------------- */
+function aiScore(st,team,p,noise,round){
+  const cfg=AI[team];
+  const raw=p.pos==='TW'?Math.max(cfg.need.RHP,cfg.need.IF):(cfg.need[p.pos]||1);
+  const w=round<=1?.4:round<=3?.7:1;
+  const need=Math.pow(raw,w);
+  const g=pgrp(p);
+  const have=teamPicks(st,team).filter(o=>pgrp(P[o[1]])===g).length;
+  const tgt=cfg.quota[g]??1;
+  const q=have<tgt?1+.03*(tgt-have):Math.pow(.86,have-tgt+1);
+  const like=cfg.like.includes(p.n)?(round<=3?6:4):(cfg.weak||[]).includes(p.n)?(round<=3?2:2.5):0;
+  return p.g*need*(cfg.cat[p.c]||1)*q+like+(Math.random()*2-1)*noise;
+}
+function aiBest(st,team,noise,round){
+  const tk=takenSet(st);let best=null,bs=-1e9;
+  for(const p of P){if(tk.has(p.id))continue;const s=aiScore(st,team,p,noise,round);if(s>bs){bs=s;best=p}}
+  return best;
+}
+function aiBid(st,team){
+  const tk=takenSet(st);
+  if(st.iter===1){
+    const opts=AI[team].fav.filter(([n])=>!tk.has(byName[n].id));
+    const tot=opts.reduce((a,[,w])=>a+w,0);
+    if(tot>0){let r=Math.random()*tot;for(const [n,w] of opts){r-=w;if(r<=0)return byName[n]}}
+  }
+  return aiBest(st,team,3,1);
+}
+
+/* ---------------- connection ---------------- */
+const NET={room:null,user:null,me:null,isAdmin:false,isHost:false,hostPeer:null,lastStateAt:0,recvAt:0};
+let ST=emptyState();
+const L={nick:'',teams:[],active:null,seq:0,actKind:null,acts:[],bids:{}};
+try{L.nick=localStorage.getItem('mp26-nick')||''}catch(e){}
+
+async function connect(){
+  if(!window.claude||!window.claude.use){showNoRoom('none');return}
+  const [room,user]=await Promise.all([window.claude.use('room'),window.claude.use('user')]);
+  if(!room){showNoRoom('none');return}
+  NET.room=room;NET.user=user;
+  NET.isAdmin=user?await user.canEdit():false;
+  room.on('state',msg=>{
+    if(!msg||!msg.data||msg.sameTab)return;
+    const d=msg.data; if(typeof d!=='object')return;
+    if(NET.isHost)return; // host owns state
+    NET.hostPeer=msg.peer;NET.lastStateAt=Date.now();NET.recvAt=Date.now();
+    ST=d;render();
+  },()=>{});
+  room.onPeers(ch=>{
+    const me=ch.peers.find(p=>p.isMe&&p.sameTab);if(me)NET.me=me.peer;
+    if(NET.isHost){
+      for(const p of ch.left)hostPeerLeft(p.peer);
+      for(const p of [...ch.joined,...ch.updated])hostProcessPeer(p);
+      if(ch.joined.length)hostBroadcast(false);
+    }
+    renderPeople();renderLobby();
+  },()=>{});
+  room.onConnection(c=>{NET.connected=c;renderStatus()},()=>{showNoRoom('none')});
+  pushPresence();
+  setTimeout(()=>{render()},1500);
+}
+function showNoRoom(){
+  const el=$('#noroom');el.hidden=false;
+  if(!window.__FB_OK){
+    el.innerHTML=`<div class="notice"><h3>Firebaseの設定がまだです</h3>firebase-config.js に、Firebaseのプロジェクト設定（apiKey や databaseURL など）を貼り付けてください。手順は README を見てください。候補リストと12球団ボードは、このまま見られます。</div>`;
+    $('#phase').textContent='設定待ち';$('#msg').textContent='Firebaseの設定が入ると、対戦部屋が使えるようになります。';return;
+  }
+  el.innerHTML=`<div class="notice" style="display:flex;flex-direction:column;gap:8px"><h3>対戦部屋に入る</h3>
+    <div>みんなで同じ<b>合言葉</b>を入れると、同じ部屋に入れます（半角英数字、24文字まで）。主催する人が合言葉を決めて、URLをLINEなどで送ってください。</div>
+    <form id="joinForm" style="display:flex;gap:8px;flex-wrap:wrap"><input id="roomCode" maxlength="24" placeholder="例：dragons2026" style="border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:6px 10px;font:inherit;flex:0 1 240px;min-width:0" required pattern="[A-Za-z0-9_-]+"><button class="btn primary" type="submit">この合言葉で入る</button></form></div>`;
+  $('#joinForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#roomCode').value.toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,24);if(v)location.search='?room='+encodeURIComponent(v)});
+  $('#phase').textContent='部屋を選ぶ';$('#msg').textContent='合言葉を入れて部屋に入ってください。';
+}
+function pushPresence(){
+  if(!NET.room)return;
+  const pres={nick:L.nick||'',team:L.teams[0]||null,teams:L.teams.slice(0,12),role:NET.isHost?'host':'player',acts:L.acts.slice(-8)};
+  NET.room.presence(pres).catch(()=>{});
+  if(NET.isHost&&NET.me)hostProcessPeer({peer:NET.me,presence:pres});
+}
+function sendAct(kind,pid,team){L.seq++;L.actKind={kind,pid,team};L.acts.push({seq:L.seq,kind,pid,team});if(L.acts.length>8)L.acts.shift();pushPresence()}
+function doAct(team,kind,pid){if(NET.isHost)return hostAct(team,kind,pid);sendAct(kind,pid,team)}
+function nowTeam(){if(myTeams().length<2)return null;const t=myTeam();if(!t)return null;
+  if(ST.phase==='bid'&&ST.pending.includes(t))return t;
+  if(ST.phase==='draft'&&ST.cur===t)return t;
+  if(ST.phase==='reveal'&&ST.reveal&&ST.reveal.step>=0){const c=ST.reveal.contests[Math.min(ST.reveal.step,ST.reveal.contests.length-1)];if(c&&c[2]==null&&c[1].includes(t)&&(c[3]||{})[t]==null)return t}
+  return null}
+function myTeams(){const me=NET.me;if(!me)return [];return TEAMS.map(t=>t.id).filter(t=>ST.seats&&ST.seats[t]===me)}
+function myTeam(){
+  const mine=myTeams();if(!mine.length)return null;
+  if(ST.phase==='draft'&&mine.includes(ST.cur))return ST.cur;
+  if(ST.phase==='reveal'&&ST.reveal&&ST.reveal.step>=0){const c=ST.reveal.contests[Math.min(ST.reveal.step,ST.reveal.contests.length-1)];
+    if(c){const m=mine.filter(t=>c[1].includes(t));const u=m.find(t=>c[2]==null&&(c[3]||{})[t]==null);if(u)return u;if(m.length)return m[0]}}
+  if(ST.phase==='bid'){const pend=mine.filter(t=>ST.pending.includes(t));if(pend.length){if(L.active&&pend.includes(L.active))return L.active;return pend.find(t=>!ST.bidsIn.includes(t)&&L.bids[t]==null)||pend[0]}}
+  return L.active&&mine.includes(L.active)?L.active:mine[0];
+}
+function nickOf(peer){if(!NET.room)return '';const p=NET.room.peers().find(x=>x.peer===peer);return p&&p.presence&&typeof p.presence.nick==='string'?p.presence.nick.slice(0,8):''}
+function hostPresent(){if(NET.isHost)return true;if(!NET.room)return false;return NET.room.peers().some(p=>p.presence&&p.presence.role==='host')&&Date.now()-NET.lastStateAt<15000}
+
+/* ---------------- host engine ---------------- */
+const H={bids:{},lastSeq:{},aiAt:0,deadline:0,nextAt:0,tick:null};
+function becomeHost(){
+  NET.isHost=true;ST=emptyState();
+  try{const saved=JSON.parse(localStorage.getItem('mp26-host')||'null');if(saved&&saved.phase&&saved.phase!=='done'&&saved.phase!=='lobby'&&Date.now()-saved._t<3600000){ST=saved;delete ST._t;H.deadline=Date.now()+TURN_MS;H.aiAt=Date.now()+AI_DELAY;H.nextAt=Date.now()+REVEAL_MS}}catch(e){}
+  pushPresence();
+  if(NET.room)for(const p of NET.room.peers())hostProcessPeer(p);
+  hostBroadcast(true);
+  H.tick=setInterval(hostTick,400);
+  setInterval(()=>hostBroadcast(false),4000);
+}
+function hostBroadcast(changed){
+  if(!NET.isHost)return;
+  if(changed)ST.v++;
+  const now=Date.now();
+  ST.remain=(ST.phase==='bid'||(ST.phase==='draft'&&ST.cur&&ST.seats[ST.cur]))?Math.max(0,H.deadline-now):(ST.phase==='reveal'&&H.drawDeadline)?Math.max(0,H.drawDeadline-now):null;
+  NET.recvAt=now;
+  if(NET.room){let msg=ST;if(JSON.stringify(msg).length>3800&&msg.reveal){msg={...ST,reveal:{...ST.reveal,bids:[]}}}NET.room.emit('state',msg).catch(()=>{})}
+  if(changed){try{localStorage.setItem('mp26-host',JSON.stringify({...ST,_t:now}))}catch(e){}}
+  render();
+}
+function hostPeerLeft(peer){
+  let ch=false;
+  for(const [t,p] of Object.entries(ST.seats))if(p===peer){delete ST.seats[t];ch=true;if(ST.phase==='draft'&&ST.cur===t)H.aiAt=Date.now()+AI_DELAY}
+  delete H.lastSeq[peer];
+  if(ch){hostCheckBidsComplete();if(!hostCheckDraw())hostBroadcast(true)}
+}
+function hostProcessPeer(p){
+  if(!p||!p.presence)return;
+  const pr=p.presence, peer=p.peer; let ch=false;
+  // seat claim
+  const wantL=Array.isArray(pr.teams)?pr.teams:(typeof pr.team==='string'?[pr.team]:[]);
+  const want=new Set(wantL.filter(t=>typeof t==='string'&&TN[t]));
+  for(const [t,v] of Object.entries(ST.seats))if(v===peer&&!want.has(t)){delete ST.seats[t];ch=true;if(ST.phase==='draft'&&ST.cur===t)H.aiAt=Date.now()+AI_DELAY}
+  for(const t of want)if(!ST.seats[t]){ST.seats[t]=peer;ch=true;if(ST.phase==='draft'&&ST.cur===t)H.deadline=Date.now()+TURN_MS}
+  // action
+  const acts=(Array.isArray(pr.acts)?pr.acts:(pr.act?[pr.act]:[])).filter(a=>a&&typeof a.seq==='number').sort((x,y)=>x.seq-y.seq);
+  for(const a of acts){
+    if(a.seq<=(H.lastSeq[peer]||0))continue;
+    H.lastSeq[peer]=a.seq;
+    let team=typeof a.team==='string'&&ST.seats[a.team]===peer?a.team:null;
+    if(!team&&!a.team){const own=Object.entries(ST.seats).filter(([,v])=>v===peer);if(own.length===1)team=own[0][0]}
+    if(team){if(ch){hostCheckBidsComplete();hostBroadcast(true);ch=false}hostAct(team,a.kind,a.pid)}
+  }
+  if(ch){hostCheckBidsComplete();hostBroadcast(true)}
+}
+function hostAct(team,kind,pid){
+  const tk=takenSet(ST);
+  if(kind==='bid'&&ST.phase==='bid'&&ST.pending.includes(team)&&P[pid]&&!tk.has(pid)){
+    H.bids[team]=pid;if(!ST.bidsIn.includes(team))ST.bidsIn.push(team);
+    if(!hostCheckBidsComplete())hostBroadcast(true);return true;
+  }
+  if(kind==='pick'&&ST.phase==='draft'&&ST.cur===team&&P[pid]&&!tk.has(pid)){
+    ST.order.push([team,pid,ST.round,0]);hostAdvance();return true;
+  }
+  if(kind==='env'&&ST.phase==='reveal'&&ST.reveal&&ST.reveal.step>=0&&H.drawDeadline){
+    const c=ST.reveal.contests[ST.reveal.step];
+    if(c&&c[2]==null&&c[1].includes(team)&&c[3][team]==null&&Number.isInteger(pid)&&pid>=0&&pid<c[1].length&&!Object.values(c[3]).includes(pid)){
+      c[3][team]=pid;if(!hostCheckDraw())hostBroadcast(true);return true;
+    }
+    return false;
+  }
+  if(kind==='end'&&ST.phase==='draft'&&ST.cur===team){ST.ended.push(team);hostAdvance();return true}
+  return false;
+}
+function humanPending(){return ST.pending.filter(t=>ST.seats[t])}
+function hostCheckBidsComplete(){
+  if(ST.phase!=='bid')return false;
+  if(humanPending().every(t=>ST.bidsIn.includes(t))){hostResolveBids();return true}
+  return false;
+}
+function hostReset(){
+  const seats=ST.seats;ST=emptyState();ST.seats=seats;H.bids={};H.lastSeq={...H.lastSeq};
+  try{localStorage.removeItem('mp26-host')}catch(e){}
+  hostBroadcast(true);
+}
+let resetConfirm=0;
+function hostStart(){
+  ST.phase='bid';ST.iter=1;ST.pending=TEAMS.map(t=>t.id);ST.bidsIn=[];ST.order=[];ST.ended=[];H.bids={};H.deadline=Date.now()+TURN_MS;
+  if(!hostCheckBidsComplete())hostBroadcast(true);
+}
+function hostResolveBids(){
+  const bids={};
+  for(const t of ST.pending){const pid=H.bids[t];bids[t]=(pid!=null&&!takenSet(ST).has(pid))?pid:aiBid(ST,t).id}
+  const groups={};for(const [t,pid] of Object.entries(bids))(groups[pid]=groups[pid]||[]).push(t);
+  const singles=[],contests=[];
+  for(const [pid,ts] of Object.entries(groups)){if(ts.length===1)singles.push([ts[0],+pid]);else contests.push([+pid,ts,null,{}])}
+  const flag=ST.iter===1?0:1;
+  for(const [t,pid] of singles){ST.order.push([t,pid,1,flag])}
+  ST.pending=ST.pending.filter(t=>!singles.some(s=>s[0]===t));
+  ST.reveal={label:ST.iter===1?'1巡目':'外れ1位（'+ST.iter+'回目）',singles,contests,step:-1,bids:Object.entries(bids)};
+  H.hits=contests.map(c=>Math.floor(Math.random()*c[1].length));H.drawDeadline=0;
+  ST.phase='reveal';H.nextAt=Date.now()+(contests.length?6000:5000);H.bids={};
+  hostBroadcast(true);
+}
+function hostRevealStep(){
+  const R=ST.reveal;R.step++;
+  if(R.step<R.contests.length){const c=R.contests[R.step];
+    if(!c[1].some(t=>ST.seats[t])){hostFinishDraw();return}
+    H.drawDeadline=Date.now()+DRAW_MS;H.nextAt=Infinity;hostBroadcast(true);return}
+  const flag=ST.iter===1?0:1;
+  for(const [pid,ts,w] of R.contests){ST.order.push([w,pid,1,flag]);ST.pending=ST.pending.filter(t=>t!==w)}
+  ST.reveal=null;
+  if(ST.pending.length){ST.iter++;ST.phase='bid';ST.bidsIn=[];H.deadline=Date.now()+TURN_MS;if(!hostCheckBidsComplete())hostBroadcast(true);return}
+  ST.phase='draft';ST.round=2;ST.idx=0;hostStartTurn();
+}
+function hostFinishDraw(){
+  const R=ST.reveal;const c=R.contests[R.step];const n=c[1].length;
+  const used=new Set(Object.values(c[3]));
+  const free=[...Array(n).keys()].filter(i=>!used.has(i)).sort(()=>Math.random()-.5);
+  for(const t of c[1])if(c[3][t]==null)c[3][t]=free.shift();
+  const hit=H.hits[R.step];c[2]=c[1].find(t=>c[3][t]===hit);
+  H.drawDeadline=0;H.nextAt=Date.now()+REVEAL_MS+1500;hostBroadcast(true);
+}
+function hostCheckDraw(){
+  if(ST.phase!=='reveal'||!ST.reveal||ST.reveal.step<0||!H.drawDeadline)return false;
+  const c=ST.reveal.contests[ST.reveal.step];if(!c||c[2])return false;
+  if(c[1].filter(t=>ST.seats[t]).every(t=>c[3][t]!=null)){hostFinishDraw();return true}
+  return false;
+}
+function hostAdvance(){ST.idx++;hostStartTurn()}
+function hostStartTurn(){
+  while(ST.round<=ROUNDS){
+    const order=orderFor(ST.round);
+    if(ST.idx>=order.length){ST.round++;ST.idx=0;continue}
+    const t=order[ST.idx];
+    if(ST.ended.includes(t)){ST.idx++;continue}
+    ST.cur=t;H.deadline=Date.now()+TURN_MS;H.aiAt=Date.now()+AI_DELAY;hostBroadcast(true);return;
+  }
+  ST.cur=null;ST.phase='done';hostBroadcast(true);
+}
+function hostTick(){
+  const now=Date.now();
+  if(NET.room&&now-(H.lastClean||0)>5000){H.lastClean=now;const live=new Set(NET.room.peers().map(p=>p.peer));if(live.size){let ch=false;for(const [t,p] of Object.entries(ST.seats))if(!live.has(p)){delete ST.seats[t];ch=true;if(ST.phase==='draft'&&ST.cur===t)H.aiAt=now+AI_DELAY}if(ch){hostCheckBidsComplete();hostBroadcast(true);return}}}
+  if(ST.phase==='bid'&&now>=H.deadline){hostResolveBids();return}
+  if(ST.phase==='reveal'&&H.drawDeadline&&now>=H.drawDeadline){hostFinishDraw();return}
+  if(ST.phase==='reveal'&&!H.drawDeadline&&now>=H.nextAt){hostRevealStep();return}
+  if(ST.phase==='draft'&&ST.cur){
+    const human=!!ST.seats[ST.cur];
+    if(!human&&now>=H.aiAt){
+      const r=ST.round;
+      if(Math.random()<END_PROB[r]){ST.ended.push(ST.cur)}else{const p=aiBest(ST,ST.cur,r<=3?3:5,r);if(p)ST.order.push([ST.cur,p.id,r,0]);else ST.ended.push(ST.cur)}
+      hostAdvance();return;
+    }
+    if(human&&now>=H.deadline){const p=aiBest(ST,ST.cur,3,ST.round);if(p)ST.order.push([ST.cur,p.id,ST.round,2]);hostAdvance();return}
+  }
+}
+
+/* ---------------- UI state ---------------- */
+const ui={color:'pos',cat:'all',pos:'all',q:'',starOnly:false,showTaken:false};
+let STAR=new Set();
+try{const v=localStorage.getItem('mp26-star');STAR=new Set(v?JSON.parse(v):[])}catch(e){STAR=new Set()}
+function saveStar(){try{localStorage.setItem('mp26-star',JSON.stringify([...STAR]))}catch(e){}}
+
+function remainMs(){if(ST.remain==null)return null;return Math.max(0,ST.remain-(Date.now()-NET.recvAt))}
+function fmt(ms){const s=Math.ceil(ms/1000);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`}
+
+/* ---------------- render ---------------- */
+function render(){renderStatus();renderLobby();renderPool();renderMine();renderBoard();renderLog();renderPeople();renderReveal()}
+function canBid(){const t=myTeam();return ST.phase==='bid'&&t&&ST.pending.includes(t)}
+function canPick(){const t=myTeam();return ST.phase==='draft'&&t&&ST.cur===t}
+function renderStatus(){
+  const ph=$('#phase'),msg=$('#msg'),act=$('#statusAct');
+  if(!NET.room){return}
+  const t=myTeam();act.innerHTML='';
+  if(!NET.isHost&&!hostPresent()&&ST.phase==='lobby'){
+    ph.textContent='待機中';
+    msg.innerHTML=NET.isAdmin?'主催者がまだいません。あなたが主催できます。':'主催者が部屋を開くのを待っています。担当したい球団は先に選んでおけます。';
+    if(NET.isAdmin){const b=document.createElement('button');b.className='btn primary';b.textContent='この端末で主催する';b.onclick=becomeHost;act.appendChild(b)}
+    return;
+  }
+  const tm=remainMs();
+  if(ST.phase==='lobby'){ph.textContent='ロビー';msg.innerHTML='担当球団を選んでください。'+(NET.isHost?'そろったら<b>ドラフト開始</b>を押します。':'主催者がドラフトを始めるまでお待ちください。')}
+  else if(ST.phase==='bid'){
+    ph.textContent=ST.iter===1?'1巡目 入札':'外れ1位 入札';
+    const mp=myTeams().filter(x=>ST.pending.includes(x));const nm='';
+    const nb=nowTeam()?`<span class="nowteam">${TN[t]}${ST.iter>1?' 外れ1位':''}を入札中</span>`:'';
+    msg.innerHTML=canBid()?nb+(ST.bidsIn.includes(t)?`${nm}入札しました。ほかの参加者を待っています（入札は変更できます）。`:`<b>${nm}入札する選手</b>を選んでください。全員そろうか時間切れで一斉に公開します。`):'参加者の入札を待っています。';
+    if(mp.length>1){const w=document.createElement('div');w.className='teamsw';w.innerHTML=mp.map(x=>`<button class="btn small${x===t?' now':''}" data-sw="${x}">${TN[x]}${ST.bidsIn.includes(x)?' ✓':''}</button>`).join('');act.appendChild(w)}
+  } else if(ST.phase==='reveal'){ph.textContent='抽選';msg.textContent='入札結果を公開しています。'}
+  else if(ST.phase==='draft'){
+    const no=orderFor(ST.round).indexOf(ST.cur)+1;
+    ph.textContent=`${ST.round}巡目`;
+    msg.innerHTML=canPick()?`${nowTeam()?`<span class="nowteam">${TN[t]}を指名中</span>`:''}<b>あなた（${TN[t]}）の番です。</b>指名する選手を選んでください。`:`${TN[ST.cur]||''}の番です（${ST.round}巡目の<span class="num">${no}</span>番目）${ST.seats[ST.cur]?`・${esc(nickOf(ST.seats[ST.cur])||'参加者')}が考え中`:'・自動指名'}。`;
+    if(canPick()){const b=document.createElement('button');b.className='btn small';b.textContent='ここで指名終了';b.onclick=()=>{if(NET.isHost)hostAct(t,'end');else sendAct('end',null,t)};act.appendChild(b)}
+  } else if(ST.phase==='done'){ph.textContent='指名終了';msg.textContent=NET.isHost?'全球団の指名が終わりました。「もう一度ドラフトする」で担当球団はそのままロビーに戻ります。':'全球団の指名が終わりました。主催者がもう一度始めるのを待っています。'}
+  if(NET.isHost&&ST.phase!=='lobby'){
+    const b=document.createElement('button');b.className='btn small'+(ST.phase==='done'?' primary':' danger');
+    if(ST.phase==='done'){b.textContent='もう一度ドラフトする';b.onclick=hostReset}
+    else{const armed=Date.now()-resetConfirm<4000;b.textContent=armed?'本当にやり直す':'最初からやり直す';b.onclick=()=>{if(Date.now()-resetConfirm<4000){resetConfirm=0;hostReset()}else{resetConfirm=Date.now();renderStatus()}}}
+    act.appendChild(b);
+  }
+  if(tm!=null&&(ST.phase==='bid'||(ST.phase==='draft'&&ST.seats[ST.cur]))){
+    const d=document.createElement('div');d.className='timer'+(tm<30000?' low':'');d.textContent=fmt(tm);d.id='timer';act.prepend(d);
+  }
+}
+function renderLobby(){
+  const lb=$('#lobby');
+  if(!NET.room){lb.hidden=true;return}
+  lb.hidden=!(ST.phase==='lobby'||ST.phase==='bid'||ST.phase==='draft');
+  if(ST.phase!=='lobby'){lb.querySelector('h2').textContent='担当球団（空いている球団は途中から参加できます）'}
+  else lb.querySelector('h2').textContent='担当球団を選ぶ';
+  const me=NET.me;
+  $('#seats').innerHTML=TEAMS.map(t=>{
+    const holder=ST.seats[t.id];const mine=holder&&holder===me;const want=L.teams.includes(t.id)&&!mine;
+    const who=holder?(mine?'あなた':esc(nickOf(holder)||'参加者')):(want?'確認中…':'自動指名');
+    return `<button class="seat${holder?' taken':''}${mine?' mine':''}${nowTeam()===t.id?' now':''}" data-seat="${t.id}" ${holder&&!mine?'disabled':''} aria-pressed="${!!mine}"><span class="tn">${t.n}</span><span class="who">${who}</span></button>`;
+  }).join('');
+  const n=NET.room.peers().length;$('#peopleCount').textContent=`接続中 ${n}人`;
+  const hc=$('#hostCtl');
+  hc.innerHTML=NET.isHost&&ST.phase==='lobby'?`<button class="btn primary" id="startBtn">ドラフト開始</button><span class="muted" style="font-size:12.5px">人がいない球団は自動で指名します。あなたも担当球団を選べます（1台で複数の球団もOK。選ばなければ司会だけ）。</span>`:'';
+  const sb=$('#startBtn');if(sb)sb.onclick=hostStart;
+}
+function renderPool(){
+  const tk=takenSet(ST);const bid=canBid(),pick=canPick();
+  const myBid=bid?L.bids[myTeam()]??null:null;const nw=nowTeam();
+  const q=ui.q.trim();
+  const list=P.filter(p=>{
+    if(!ui.showTaken&&tk.has(p.id))return false;
+    if(ui.cat!=='all'&&p.c!==ui.cat)return false;
+    if(ui.pos!=='all'){if(ui.pos==='RHP'?!(p.pos==='RHP'||p.pos==='TW'):ui.pos==='IF'?!(p.pos==='IF'||p.pos==='TW'):p.pos!==ui.pos)return false}
+    if(ui.starOnly&&!STAR.has(p.n))return false;
+    if(q&&!(p.n.includes(q)||p.t.includes(q)))return false;
+    return true;
+  }).sort((a,b)=>b.g-a.g);
+  $('#poolCount').textContent=`残り ${P.length-tk.size}人`;
+  const takenBy={};for(const o of ST.order)takenBy[o[1]]=o;
+  $('#pool').innerHTML=list.map(p=>{
+    const o=takenBy[p.id];
+    const tags=jtag(p.n)+(p.d===2?'<span class="tag d2">中日◎</span>':p.d===1?'<span class="tag d1">中日○</span>':'')+(o?`<span class="tag gone">${TN[o[0]]} ${o[2]}位</span>`:'');
+    let btn='';
+    if(!o&&bid)btn=`<button class="btn small ${myBid===p.id?'':(nw?'nowbtn':'primary')}" data-act="bid" data-id="${p.id}">${myBid===p.id?(nw?TN[nw]+'で入札中':'入札中'):(nw?TN[nw]+'で入札':'入札する')}</button>`;
+    else if(!o&&pick)btn=`<button class="btn small ${nw?'nowbtn':'primary'}" data-act="pick" data-id="${p.id}">${nw?TN[nw]+'で指名':'指名する'}</button>`;
+    const st=STAR.has(p.n);
+    return `<div class="row${o?' taken':''}"><div class="grade">${p.g}</div><div class="who"><div class="nm">${esc(p.n)}${tags}</div><div class="meta">${esc(p.t)}・${CATL[p.c]}・${POSL[p.pos]}</div><div class="note">${esc(p.note)}</div></div><div class="acts"><button class="star" data-star="${p.id}" aria-pressed="${st}" aria-label="リストアップ">${st?'★':'☆'}</button>${btn}</div></div>`;
+  }).join('')||'<p class="muted" style="padding:12px 4px">条件に合う選手がいません。</p>';
+}
+function renderMine(){
+  const t=myTeam();
+  const bi=$('#bidsin');
+  if(ST.phase==='bid'){
+    bi.innerHTML=`<div><h3 style="margin-bottom:6px">入札状況</h3><div class="bidsin">${ST.pending.filter(x=>ST.seats[x]).map(x=>`<span class="${ST.bidsIn.includes(x)?'done':'wait'}">${TN[x]} ${ST.bidsIn.includes(x)?'入札済み':'考え中'}</span>`).join('')||'<span class="muted">参加者の入札はありません</span>'}</div><p class="muted" style="font-size:12px;margin:6px 0 0">入札先は公開まで見えません。人がいない球団は公開時に自動で入札します。</p></div>`;
+  } else bi.innerHTML='';
+  const tk=takenSet(ST);
+  const my=P.filter(p=>STAR.has(p.n)&&!tk.has(p.id)).sort((a,b)=>b.g-a.g);
+  const act=canBid()?'bid':canPick()?'pick':null;
+  $('#mylist').innerHTML=ST.phase==='done'?'':`<div class="mylist"><div class="panel-head"><h3>リストアップ</h3><span class="muted num" style="font-size:12px">残り ${my.length}人</span></div>${my.slice(0,8).map(p=>`<div class="mi"><span><b>${esc(p.n)}</b>${jtag(p.n)} <span class="muted">${esc(p.t)}・${POSL[p.pos]}・${p.g}</span></span>${act?`<button class="btn small primary" data-act="${act}" data-id="${p.id}">${act==='bid'?'入札':'指名'}</button>`:''}</div>`).join('')||(STAR.size?'<div class="muted" style="font-size:13px">リストアップの選手は残っていません。</div>':'<div class="muted" style="font-size:13px">リストアップはまだ空です。候補リストの☆で追加できます（このブラウザに保存）。</div>')}</div>`;
+  if(!t){$('#sheet').innerHTML='<p class="muted" style="margin:0">担当球団を選ぶと、ここに指名した選手が並びます。</p>';$('#copyBox').innerHTML='';return}
+  let h='';
+  for(const tt of myTeams()){
+  h+=`<h3 class="sheethead${nowTeam()===tt?' now':''}" style="margin:${h?'14px':'0'} 0 4px">${TN[tt]}の指名${nowTeam()===tt?'（指名中）':''}</h3>`;
+  for(let r=1;r<=ROUNDS;r++){
+    const o=ST.order.find(x=>x[0]===tt&&x[2]===r);
+    h+=`<div class="slot"><div class="rd">${r}位</div>${o?`<div><b>${esc(P[o[1]].n)}</b>${jtag(P[o[1]].n)}　<span class="muted">${esc(P[o[1]].t)}・${POSL[P[o[1]].pos]}${o[3]===1?'・外れ1位':''}${o[3]===2?'・時間切れで自動':''}</span></div>`:`<div class="empty">${ST.ended.includes(tt)&&r>1?'選択終了':'—'}</div>`}</div>`;
+  }}
+  $('#sheet').innerHTML=h;
+  $('#copyBox').innerHTML=ST.phase==='done'?`<button class="btn" id="copyRes" data-label="結果をコピー">結果をコピー</button>`:'';
+  const cb=$('#copyRes');if(cb)cb.onclick=()=>copyText(myTeams().map(resultText).join('\n\n'),cb);
+}
+function resultText(t){
+  const lines=[`【みんなで仮想ドラフト2026】${TN[t]}`];
+  for(const o of ST.order.filter(x=>x[0]===t))lines.push(`${o[3]===1?'1位(外れ)':o[2]+'位'} ${P[o[1]].n}（${P[o[1]].t}・${POSL[P[o[1]].pos]}）`);
+  return lines.join('\n');
+}
+async function copyText(txt,btn){
+  try{await navigator.clipboard.writeText(txt);btn.textContent='コピーしました'}
+  catch(e){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');btn.textContent='コピーしました'}catch(_){btn.textContent='コピーできませんでした'}ta.remove()}
+  setTimeout(()=>{btn.textContent=btn.dataset.label},1800);
+}
+function posColor(p){if(p.pos==='C')return 'p3';if(p.pos==='IF')return 'p4';if(p.pos==='OF')return 'p5';return p.role==='R'?'p2':'p1'}
+const COLORMAP={pos:{},cat:{'大':'k1','高':'k2','社':'k3','独':'k4'}};
+const LEGEND={pos:[['p1','先発'],['p2','中継ぎ・抑え'],['p3','捕手'],['p4','内野手'],['p5','外野手']],cat:[['k2','高校'],['k1','大学'],['k3','社会人'],['k4','独立']]};
+const POSS={RHP:'投・右',LHP:'投・左',TW:'投・内',C:'捕',IF:'内',OF:'外'};
+function renderBoard(){
+  $('#legend').innerHTML=LEGEND[ui.color].map(([k,l])=>`<span><i class="${k}"></i>${l}</span>`).join('')+'<span class="muted">担当者がいる球団は見出しに名前、あなたの球団は青枠</span>';
+  const t0=myTeam();
+  let h='<thead><tr><th></th>'+TEAMS.map(t=>{const s=ST.seats[t.id];return `<th class="${myTeams().includes(t.id)?'d':''}${nowTeam()===t.id?' now':''}">${t.n}${s?`<span class="thn">${esc(s===NET.me?'あなた':(nickOf(s)||'参加者'))}</span>`:''}</th>`}).join('')+'</tr></thead><tbody>';
+  for(let r=1;r<=ROUNDS;r++){
+    h+=`<tr><th class="rh">${r}位</th>`;
+    for(const t of TEAMS){
+      const o=ST.order.find(x=>x[0]===t.id&&x[2]===r);const d=(myTeams().includes(t.id)?' d':'')+(nowTeam()===t.id?' nowcol':'');
+      if(o){const p=P[o[1]];const k=(ui.color==='pos'?posColor(p):COLORMAP.cat[p.c]);h+=`<td class="${k}${d}"><span class="bn">${esc(p.n)}</span>${jtag(p.n)}<span class="bs">${POSS[p.pos]}・${esc(p.t)}${o[3]===1?'・外れ':''}${o[3]===2?'・自動':''}</span></td>`}
+      else if(ST.phase==='draft'&&ST.cur===t.id&&ST.round===r)h+=`<td class="${d.trim()}"><span class="out">指名中…</span></td>`;
+      else if(ST.ended.includes(t.id)&&r>1&&!ST.order.some(x=>x[0]===t.id&&x[2]>r))h+=`<td class="${d.trim()}"><span class="out">選択終了</span></td>`;
+      else h+=`<td class="${d.trim()}"></td>`;
+    }
+    h+='</tr>';
+  }
+  $('#board').innerHTML=h+'</tbody>';
+}
+function renderLog(){
+  $('#log').innerHTML=[...ST.order].reverse().map(o=>{const p=P[o[1]];const head=o[2]===1?'第1回選択希望選手':`第${o[2]}巡選択希望選手`;return `<div class="${myTeams().includes(o[0])?'mine':''}">${head}　${TN[o[0]]}　${esc(p.n)}　${POSA[p.pos]}　${esc(p.t)}${o[3]===1?'（外れ1位）':''}${o[3]===2?'（時間切れ・自動）':''}</div>`}).join('')||'<div class="sys">まだ指名はありません。</div>';
+}
+function renderPeople(){
+  if(!NET.room){$('#people').innerHTML='';return}
+  $('#people').innerHTML=NET.room.peers().map(p=>{const pr=p.presence||{};const seat=Object.entries(ST.seats).find(([,v])=>v===p.peer);return `<div><span>${esc((typeof pr.nick==='string'&&pr.nick.slice(0,8))||'名前未設定')}${p.isMe&&p.sameTab?'（あなた）':''}${pr.role==='host'?' <span class="tag k">主催</span>':''}</span><span class="muted">${seat?TN[seat[0]]:'観戦'}</span></div>`}).join('');
+}
+function renderReveal(){
+  const ov=$('#overlay'),box=$('#lot');
+  if(ST.phase!=='reveal'||!ST.reveal){ov.hidden=true;return}
+  ov.hidden=false;const R=ST.reveal;const t0=myTeam();
+  const bidList=R.bids.map(([t,pid])=>`<div>${TN[t]}：<b>${esc(P[pid].n)}</b>${ST.seats[t]?'':' <span class="muted">（自動）</span>'}</div>`).join('');
+  if(R.step<0){
+    box.innerHTML=`<h2>${esc(R.label)} 入札結果</h2><div class="summary-list" style="font-size:13.5px">${bidList}</div>${R.contests.length?`<p style="margin:0"><b>${R.contests.length}件の競合</b>があります。まもなく抽選します。</p>`:'<p class="muted" style="margin:0">競合はありませんでした。</p>'}`;
+    return;
+  }
+  const i=Math.min(R.step,R.contests.length-1);const c=R.contests[i];
+  if(!c){box.innerHTML='<p>抽選を終えています…</p>';return}
+  const [pid,ts,w,env]=c;const mineIn=t0&&ts.includes(t0);const myIn=ts.filter(x=>myTeams().includes(x));const e=env||{};
+  const byEnv={};for(const [t,k] of Object.entries(e))byEnv[k]=t;
+  const canDraw=mineIn&&!w&&e[t0]==null;
+  const hitIdx=w?e[w]:null;
+  const envs=ts.map((_,k)=>{const who=byEnv[k];const free=who==null;
+    return `<button class="env${hitIdx===k?' hit':''}" data-env="${k}" ${canDraw&&free?'':'disabled'} aria-label="封筒${k+1}">${k+1}<span style="display:block;font-size:11px;font-family:var(--body);font-weight:700">${who?esc(TN[who]):''}</span></button>`}).join('');
+  const tm=remainMs();
+  let line;
+  if(w)line=`<div><span class="stamp${myIn.length&&!myIn.includes(w)?' lose':''}">${myIn.length?(myIn.includes(w)?(myIn.length>1?TN[w]+'で交渉権確定':'交渉権確定'):'外れ'):'交渉権確定'}</span>${myIn.length>1&&myIn.includes(w)?`<p style="margin:6px 0 0" class="muted">${myIn.filter(x=>x!==w).map(x=>TN[x]).join('・')}は外れ1位へ</p>`:''}<p style="margin:8px 0 0">当たりは封筒${hitIdx+1}。${TN[w]}が交渉権を獲得しました。</p></div>`;
+  else if(canDraw)line=`<p style="margin:0">${myTeams().length>1?`<span class="nowteam">${TN[t0]}の封筒</span>`:''}<b>封筒を1つ選んでください。</b>当たりは${ts.length}つのうち1つ。${tm!=null?`残り <span class="num">${fmt(tm)}</span>（時間切れは自動）`:''}</p>`;
+  else line=`<p style="margin:0">${mineIn?'封筒を選びました。ほかの球団を待っています…':'各球団が封筒を選んでいます…'}${tm!=null?` 残り <span class="num">${fmt(tm)}</span>`:''}<br><span class="muted" style="font-size:12.5px">担当者がいない球団は、最後に残った封筒を自動で引きます。</span></p>`;
+  box.innerHTML=`<p class="muted num" style="margin:0">抽選 ${i+1} / ${R.contests.length}</p><div class="who-big">${esc(P[pid].n)}</div><div class="muted">${esc(P[pid].t)}・${POSL[P[pid].pos]}</div>
+    <div class="bidders">${ts.map(t=>`<span class="${myTeams().includes(t)?'d':''}${w===t?' win':''}${!w&&canDraw&&myTeams().length>1&&t===t0?' now':''}">${TN[t]}${ST.seats[t]?'':'（自動）'}</span>`).join('')}</div>
+    <div class="envs">${envs}</div>${line}`;
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-act]');
+  if(a){const id=+a.dataset.id;const t=myTeam();if(!t)return;
+    if(a.dataset.act==='bid'){L.bids[t]=id;doAct(t,'bid',id);const nx=myTeams().filter(x=>ST.pending.includes(x)&&x!==t&&!ST.bidsIn.includes(x)&&L.bids[x]==null)[0];L.active=nx||t;render()}
+    else{if(NET.isHost)hostAct(t,'pick',id);else{sendAct('pick',id,t);a.disabled=true;a.textContent='送信中…'}}
+    return}
+  const en=e.target.closest('[data-env]');
+  if(en&&!en.disabled){const t=myTeam();if(!t)return;const k=+en.dataset.env;if(NET.isHost)hostAct(t,'env',k);else{sendAct('env',k,t);en.disabled=true}return}
+  const sw=e.target.closest('[data-sw]');
+  if(sw){L.active=sw.dataset.sw;render();return}
+  const sb=e.target.closest('[data-star]');
+  if(sb){const p=P[+sb.dataset.star];STAR.has(p.n)?STAR.delete(p.n):STAR.add(p.n);saveStar();renderPool();renderMine();return}
+  const st=e.target.closest('[data-seat]');
+  if(st){const t=st.dataset.seat;const mine=ST.seats[t]&&ST.seats[t]===NET.me;const i=L.teams.indexOf(t);if(mine||i>=0){L.teams=L.teams.filter(x=>x!==t)}else L.teams.push(t);pushPresence();renderLobby();renderMine();renderBoard();return}
+  const seg=e.target.closest('.seg button');
+  if(seg){const g=seg.parentElement;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===seg));
+    if(g.id==='fColor'){ui.color=seg.dataset.v;renderBoard();return}
+    if(g.id==='fCat')ui.cat=seg.dataset.v;else ui.pos=seg.dataset.v;renderPool();return}
+  const tab=e.target.closest('[role=tab]');
+  if(tab){document.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected',x===tab));
+    ['mine','people','log'].forEach(k=>{$('#tab-'+k).hidden=k!==tab.dataset.tab});return}
+});
+$('#nick').value=L.nick;
+$('#nick').addEventListener('change',e=>{L.nick=e.target.value.trim().slice(0,8);try{localStorage.setItem('mp26-nick',L.nick)}catch(_){}pushPresence();renderPeople()});
+$('#fq').addEventListener('input',e=>{ui.q=e.target.value;renderPool()});
+$('#fStar').addEventListener('change',e=>{ui.starOnly=e.target.checked;renderPool()});
+$('#fTaken').addEventListener('change',e=>{ui.showTaken=e.target.checked;renderPool()});
+setInterval(()=>{if(ST.phase==='reveal')renderReveal();},1000);
+setInterval(()=>{const tm=$('#timer');const r=remainMs();if(tm&&r!=null){tm.textContent=fmt(r);tm.classList.toggle('low',r<30000)}
+  if(!NET.isHost&&NET.room&&ST.phase!=='lobby'&&!hostPresent()){$('#msg').textContent='主催者との接続が切れています。再接続を待っています…'}},500);
+// after a pick is applied, clear pending act
+let lastV=-1,lastIter=-1;setInterval(()=>{if(ST.v!==lastV){lastV=ST.v;if(L.actKind&&L.actKind.kind==='pick'&&!canPick())L.actKind=null;if(L.actKind&&L.actKind.kind==='bid'&&(ST.phase!=='bid'||ST.iter!==lastIter))L.actKind=null;if(ST.phase!=='bid'||ST.iter!==lastIter){L.bids={};}lastIter=ST.iter}},300);
+render();
+(function(){const sl=$('#shareLine');if(!sl||!window.__ROOM_CODE)return;const url=location.origin+location.pathname+'?room='+encodeURIComponent(window.__ROOM_CODE);
+  sl.innerHTML=`<span class="muted">合言葉：<b style="color:var(--ink)">${esc(window.__ROOM_CODE)}</b>　この部屋のURL：</span><input id="shareUrl" readonly value="${esc(url)}" style="flex:1 1 260px"><button class="btn small" id="copyUrl" data-label="URLをコピー">URLをコピー</button>`;
+  $('#copyUrl').onclick=e=>copyText(url,e.currentTarget);})();
+connect();
+</script>
+
+</body></html>
