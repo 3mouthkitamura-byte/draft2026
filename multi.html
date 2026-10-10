@@ -203,7 +203,7 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>みんなで仮想ドラフト2026</h1>
+      <h1>みんなで仮想ドラフト2026 <span style="font-size:12px;font-weight:600;color:var(--muted,#888);vertical-align:middle">更新 10/10-C</span></h1>
       <p>参加者がそれぞれ自分のスマホやパソコンから球団を担当して、ドラフト会議をします。アカウントは不要です。人がいない球団は自動で指名。1位は全員同時に入札して抽選、2位以降はウェーバー方式（今年はパ・リーグ優先）、1回の持ち時間は3分です。</p>
     </div>
   </header>
@@ -1197,7 +1197,7 @@ function renderReveal(){
     return `<button class="env${hitIdx===k?' hit':''}" data-env="${k}" ${canDraw&&free?'':'disabled'} aria-label="封筒${k+1}">${k+1}<span style="display:block;font-size:11px;font-family:var(--body);font-weight:700">${who?esc(TN[who]):''}</span></button>`}).join('');
   const tm=remainMs();
   let line;
-  if(w)line=`<div><span class="stamp${mineIn&&w!==t0?' lose':''}">${mineIn?(w===t0?'交渉権確定':'外れ'):'交渉権確定'}</span><p style="margin:8px 0 0">当たりは封筒${hitIdx+1}。${TN[w]}が交渉権を獲得しました。</p></div>`;
+  if(w)line=`<div><span class="stamp${myTeams().length<2&&myIn.length&&!myIn.includes(w)?' lose':''}">${myTeams().length>1?TN[w]+'が交渉権確定':(myIn.length?(myIn.includes(w)?'交渉権確定':'外れ'):'交渉権確定')}</span>${myIn.length>1&&myIn.includes(w)?`<p style="margin:6px 0 0" class="muted">${myIn.filter(x=>x!==w).map(x=>TN[x]).join('・')}は外れ1位へ</p>`:''}<p style="margin:8px 0 0">当たりは封筒${hitIdx+1}。${TN[w]}が交渉権を獲得しました。</p></div>`;
   else if(canDraw)line=`<p style="margin:0">${myTeams().length>1?`<span class="nowteam">${TN[t0]}の封筒</span>`:''}<b>封筒を1つ選んでください。</b>当たりは${ts.length}つのうち1つ。${tm!=null?`残り <span class="num">${fmt(tm)}</span>（時間切れは自動）`:''}</p>`;
   else line=`<p style="margin:0">${mineIn?'封筒を選びました。ほかの球団を待っています…':'各球団が封筒を選んでいます…'}${tm!=null?` 残り <span class="num">${fmt(tm)}</span>`:''}<br><span class="muted" style="font-size:12.5px">担当者がいない球団は、最後に残った封筒を自動で引きます。</span></p>`;
   box.innerHTML=`<p class="muted num" style="margin:0">抽選 ${i+1} / ${R.contests.length}</p><div class="who-big">${esc(P[pid].n)}</div><div class="muted">${esc(P[pid].t)}・${POSL[P[pid].pos]}</div>
