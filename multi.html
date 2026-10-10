@@ -11,21 +11,21 @@
 /* Layout: a draft-room desk — candidate pool on the left, the club's pick sheet and the 12-team board on the right; lottery runs in an in-page overlay. */
 :root{
   --paper:#eef1f5; --card:#ffffff; --ink:#15213a; --muted:#5a6578; --line:#d6dce5;
-  --accent:#1d4fa6; --accent-soft:#e3ebf8; --accent-ink:#ffffff;
+  --accent:#1d4fa6; --accent-soft:#e3ebf8; --accent-ink:#ffffff; --now:#d62f24; --now-soft:#fde4e1;
   --gold:#a87a1f; --gold-soft:#f6edd9; --warn:#b4472f; --ok:#2f7a4f;
-  --k1:#dce7fa; --k2:#f6e5c3; --k3:#d6efdf; --k4:#f8d3cf;
+  --k1:#dce7fa; --k2:#f6e5c3; --k3:#d6efdf; --k4:#f8d3cf; --p1:#f6c9c4; --p2:#fadbea; --p3:#d4e2fa; --p4:#f8eab8; --p5:#d9efc4;
   --display:"Dela Gothic One","Hiragino Sans","Yu Gothic",sans-serif;
   --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#0f1522; --card:#171f2f; --ink:#e5eaf2; --muted:#97a3b6; --line:#28334a;
-  --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220;
-  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; color-scheme:dark}}
+  --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220; --now:#ff5a4d; --now-soft:#4a1d1a;
+  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; --p1:#5a2420; --p2:#4f2440; --p3:#1f3560; --p4:#4d4216; --p5:#2c4a1e; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#0f1522; --card:#171f2f; --ink:#e5eaf2; --muted:#97a3b6; --line:#28334a;
-  --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220;
-  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; color-scheme:dark}
+  --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220; --now:#ff5a4d; --now-soft:#4a1d1a;
+  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; --p1:#5a2420; --p2:#4f2440; --p3:#1f3560; --p4:#4d4216; --p5:#2c4a1e; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.6}
@@ -105,16 +105,24 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
 
 .board td .out{color:var(--muted)}
 .board .rh{font-family:var(--display);font-weight:400;white-space:nowrap}
-.board td.k1{background:var(--k1)}.board td.k2{background:var(--k2)}.board td.k3{background:var(--k3)}.board td.k4{background:var(--k4)}
+.board td.p1{background:var(--p1)}.board td.p2{background:var(--p2)}.board td.p3{background:var(--p3)}.board td.p4{background:var(--p4)}.board td.p5{background:var(--p5)}.board td.k1{background:var(--k1)}.board td.k2{background:var(--k2)}.board td.k3{background:var(--k3)}.board td.k4{background:var(--k4)}
 .board td .bn{font-weight:700;font-size:13px}
 .board td .bs{display:block;font-size:11px;color:var(--muted);line-height:1.3}
 .board th.d{background:var(--accent);color:var(--accent-ink)}
+.board th.now{background:var(--now)!important;color:#fff!important}.board td.nowcol{box-shadow:inset 3px 0 0 var(--now),inset -3px 0 0 var(--now)}
+.nowteam{display:inline-block;background:var(--now);color:#fff;font-weight:800;border-radius:6px;padding:3px 10px;margin-right:8px;font-size:15px;animation:nowp 1.6s ease-in-out infinite}
+@keyframes nowp{50%{box-shadow:0 0 0 5px var(--now-soft)}}
+.btn.now{background:var(--now);border-color:var(--now);color:#fff}
+.seat.now{border:2px solid var(--now)!important;background:var(--now-soft)!important}
+.sheethead.now{color:var(--now)}
+.bidders span.now{background:var(--now)!important;color:#fff!important;border-color:var(--now)!important}
+.btn.nowbtn{background:var(--now);border-color:var(--now);color:#fff}
 .board td.d{box-shadow:inset 3px 0 0 var(--accent),inset -3px 0 0 var(--accent)}
 .board td.d:not([class*="k"]){background:var(--accent-soft)}
 .board-sec{display:flex;flex-direction:column;gap:10px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:12.5px}
 .legend i{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid var(--line);vertical-align:-2px;margin-right:4px}
-.legend i.k1{background:var(--k1)}.legend i.k2{background:var(--k2)}.legend i.k3{background:var(--k3)}.legend i.k4{background:var(--k4)}
+.legend i.p1{background:var(--p1)}.legend i.p2{background:var(--p2)}.legend i.p3{background:var(--p3)}.legend i.p4{background:var(--p4)}.legend i.p5{background:var(--p5)}.legend i.k1{background:var(--k1)}.legend i.k2{background:var(--k2)}.legend i.k3{background:var(--k3)}.legend i.k4{background:var(--k4)}
 
 .log{max-height:60vh;overflow:auto;display:flex;flex-direction:column;gap:2px;font-size:13px}
 .log div{padding:3px 0;border-bottom:1px solid var(--line)}
@@ -235,11 +243,11 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
           <button data-v="all" aria-pressed="true">全員</button><button data-v="RHP">右投</button><button data-v="LHP">左投</button><button data-v="C">捕</button><button data-v="IF">内</button><button data-v="OF">外</button>
         </div>
         <input type="search" id="fq" placeholder="名前・所属で検索" aria-label="名前・所属で検索">
-        <label class="chk"><input type="checkbox" id="fStar">マイリストのみ</label>
+        <label class="chk"><input type="checkbox" id="fStar">リストアップのみ</label>
         <label class="chk"><input type="checkbox" id="fTaken">指名済みも表示</label>
       </div>
       <div class="pool" id="pool"></div>
-      <p class="muted" style="margin:0;font-size:12px">評価値は報道をもとにした目安。<span class="tag d2" style="margin:0">中日◎</span><span class="tag d1" style="margin:0">中日○</span>＝中日スカウトの関心、<span class="tag j" style="margin:0">J</span>＝日本代表経験。☆でマイリストに追加（このブラウザに保存）。</p>
+      <p class="muted" style="margin:0;font-size:12px">評価値は報道をもとにした目安。<span class="tag d2" style="margin:0">中日◎</span><span class="tag d1" style="margin:0">中日○</span>＝中日スカウトの関心、<span class="tag j" style="margin:0">J</span>＝日本代表経験。☆でリストアップに追加（このブラウザに保存）。</p>
     </section>
 
     <section class="panel">
@@ -856,6 +864,11 @@ function pushPresence(){
 }
 function sendAct(kind,pid,team){L.seq++;L.actKind={kind,pid,team};L.acts.push({seq:L.seq,kind,pid,team});if(L.acts.length>8)L.acts.shift();pushPresence()}
 function doAct(team,kind,pid){if(NET.isHost)return hostAct(team,kind,pid);sendAct(kind,pid,team)}
+function nowTeam(){if(myTeams().length<2)return null;const t=myTeam();if(!t)return null;
+  if(ST.phase==='bid'&&ST.pending.includes(t))return t;
+  if(ST.phase==='draft'&&ST.cur===t)return t;
+  if(ST.phase==='reveal'&&ST.reveal&&ST.reveal.step>=0){const c=ST.reveal.contests[Math.min(ST.reveal.step,ST.reveal.contests.length-1)];if(c&&c[2]==null&&c[1].includes(t)&&(c[3]||{})[t]==null)return t}
+  return null}
 function myTeams(){const me=NET.me;if(!me)return [];return TEAMS.map(t=>t.id).filter(t=>ST.seats&&ST.seats[t]===me)}
 function myTeam(){
   const mine=myTeams();if(!mine.length)return null;
@@ -1043,14 +1056,15 @@ function renderStatus(){
   if(ST.phase==='lobby'){ph.textContent='ロビー';msg.innerHTML='担当球団を選んでください。'+(NET.isHost?'そろったら<b>ドラフト開始</b>を押します。':'主催者がドラフトを始めるまでお待ちください。')}
   else if(ST.phase==='bid'){
     ph.textContent=ST.iter===1?'1巡目 入札':'外れ1位 入札';
-    const mp=myTeams().filter(x=>ST.pending.includes(x));const nm=mp.length>1?`（${TN[t]}）`:'';
-    msg.innerHTML=canBid()?(ST.bidsIn.includes(t)?`${nm}入札しました。ほかの参加者を待っています（入札は変更できます）。`:`<b>${nm}入札する選手</b>を選んでください。全員そろうか時間切れで一斉に公開します。`):'参加者の入札を待っています。';
-    if(mp.length>1){const w=document.createElement('div');w.className='teamsw';w.innerHTML=mp.map(x=>`<button class="btn small${x===t?' primary':''}" data-sw="${x}">${TN[x]}${ST.bidsIn.includes(x)?' ✓':''}</button>`).join('');act.appendChild(w)}
+    const mp=myTeams().filter(x=>ST.pending.includes(x));const nm='';
+    const nb=nowTeam()?`<span class="nowteam">${TN[t]}${ST.iter>1?' 外れ1位':''}を入札中</span>`:'';
+    msg.innerHTML=canBid()?nb+(ST.bidsIn.includes(t)?`${nm}入札しました。ほかの参加者を待っています（入札は変更できます）。`:`<b>${nm}入札する選手</b>を選んでください。全員そろうか時間切れで一斉に公開します。`):'参加者の入札を待っています。';
+    if(mp.length>1){const w=document.createElement('div');w.className='teamsw';w.innerHTML=mp.map(x=>`<button class="btn small${x===t?' now':''}" data-sw="${x}">${TN[x]}${ST.bidsIn.includes(x)?' ✓':''}</button>`).join('');act.appendChild(w)}
   } else if(ST.phase==='reveal'){ph.textContent='抽選';msg.textContent='入札結果を公開しています。'}
   else if(ST.phase==='draft'){
     const no=orderFor(ST.round).indexOf(ST.cur)+1;
     ph.textContent=`${ST.round}巡目`;
-    msg.innerHTML=canPick()?`<b>あなた（${TN[t]}）の番です。</b>指名する選手を選んでください。`:`${TN[ST.cur]||''}の番です（${ST.round}巡目の<span class="num">${no}</span>番目）${ST.seats[ST.cur]?`・${esc(nickOf(ST.seats[ST.cur])||'参加者')}が考え中`:'・自動指名'}。`;
+    msg.innerHTML=canPick()?`${nowTeam()?`<span class="nowteam">${TN[t]}を指名中</span>`:''}<b>あなた（${TN[t]}）の番です。</b>指名する選手を選んでください。`:`${TN[ST.cur]||''}の番です（${ST.round}巡目の<span class="num">${no}</span>番目）${ST.seats[ST.cur]?`・${esc(nickOf(ST.seats[ST.cur])||'参加者')}が考え中`:'・自動指名'}。`;
     if(canPick()){const b=document.createElement('button');b.className='btn small';b.textContent='ここで指名終了';b.onclick=()=>{if(NET.isHost)hostAct(t,'end');else sendAct('end',null,t)};act.appendChild(b)}
   } else if(ST.phase==='done'){ph.textContent='指名終了';msg.textContent=NET.isHost?'全球団の指名が終わりました。「もう一度ドラフトする」で担当球団はそのままロビーに戻ります。':'全球団の指名が終わりました。主催者がもう一度始めるのを待っています。'}
   if(NET.isHost&&ST.phase!=='lobby'){
@@ -1073,7 +1087,7 @@ function renderLobby(){
   $('#seats').innerHTML=TEAMS.map(t=>{
     const holder=ST.seats[t.id];const mine=holder&&holder===me;const want=L.teams.includes(t.id)&&!mine;
     const who=holder?(mine?'あなた':esc(nickOf(holder)||'参加者')):(want?'確認中…':'自動指名');
-    return `<button class="seat${holder?' taken':''}${mine?' mine':''}" data-seat="${t.id}" ${holder&&!mine?'disabled':''} aria-pressed="${!!mine}"><span class="tn">${t.n}</span><span class="who">${who}</span></button>`;
+    return `<button class="seat${holder?' taken':''}${mine?' mine':''}${nowTeam()===t.id?' now':''}" data-seat="${t.id}" ${holder&&!mine?'disabled':''} aria-pressed="${!!mine}"><span class="tn">${t.n}</span><span class="who">${who}</span></button>`;
   }).join('');
   const n=NET.room.peers().length;$('#peopleCount').textContent=`接続中 ${n}人`;
   const hc=$('#hostCtl');
@@ -1082,7 +1096,7 @@ function renderLobby(){
 }
 function renderPool(){
   const tk=takenSet(ST);const bid=canBid(),pick=canPick();
-  const myBid=bid?L.bids[myTeam()]??null:null;
+  const myBid=bid?L.bids[myTeam()]??null:null;const nw=nowTeam();
   const q=ui.q.trim();
   const list=P.filter(p=>{
     if(!ui.showTaken&&tk.has(p.id))return false;
@@ -1098,10 +1112,10 @@ function renderPool(){
     const o=takenBy[p.id];
     const tags=jtag(p.n)+(p.d===2?'<span class="tag d2">中日◎</span>':p.d===1?'<span class="tag d1">中日○</span>':'')+(o?`<span class="tag gone">${TN[o[0]]} ${o[2]}位</span>`:'');
     let btn='';
-    if(!o&&bid)btn=`<button class="btn small ${myBid===p.id?'':'primary'}" data-act="bid" data-id="${p.id}">${myBid===p.id?'入札中':'入札する'}</button>`;
-    else if(!o&&pick)btn=`<button class="btn small primary" data-act="pick" data-id="${p.id}">指名する</button>`;
+    if(!o&&bid)btn=`<button class="btn small ${myBid===p.id?'':(nw?'nowbtn':'primary')}" data-act="bid" data-id="${p.id}">${myBid===p.id?(nw?TN[nw]+'で入札中':'入札中'):(nw?TN[nw]+'で入札':'入札する')}</button>`;
+    else if(!o&&pick)btn=`<button class="btn small ${nw?'nowbtn':'primary'}" data-act="pick" data-id="${p.id}">${nw?TN[nw]+'で指名':'指名する'}</button>`;
     const st=STAR.has(p.n);
-    return `<div class="row${o?' taken':''}"><div class="grade">${p.g}</div><div class="who"><div class="nm">${esc(p.n)}${tags}</div><div class="meta">${esc(p.t)}・${CATL[p.c]}・${POSL[p.pos]}</div><div class="note">${esc(p.note)}</div></div><div class="acts"><button class="star" data-star="${p.id}" aria-pressed="${st}" aria-label="マイリスト">${st?'★':'☆'}</button>${btn}</div></div>`;
+    return `<div class="row${o?' taken':''}"><div class="grade">${p.g}</div><div class="who"><div class="nm">${esc(p.n)}${tags}</div><div class="meta">${esc(p.t)}・${CATL[p.c]}・${POSL[p.pos]}</div><div class="note">${esc(p.note)}</div></div><div class="acts"><button class="star" data-star="${p.id}" aria-pressed="${st}" aria-label="リストアップ">${st?'★':'☆'}</button>${btn}</div></div>`;
   }).join('')||'<p class="muted" style="padding:12px 4px">条件に合う選手がいません。</p>';
 }
 function renderMine(){
@@ -1113,11 +1127,11 @@ function renderMine(){
   const tk=takenSet(ST);
   const my=P.filter(p=>STAR.has(p.n)&&!tk.has(p.id)).sort((a,b)=>b.g-a.g);
   const act=canBid()?'bid':canPick()?'pick':null;
-  $('#mylist').innerHTML=ST.phase==='done'?'':`<div class="mylist"><div class="panel-head"><h3>マイリスト</h3><span class="muted num" style="font-size:12px">残り ${my.length}人</span></div>${my.slice(0,8).map(p=>`<div class="mi"><span><b>${esc(p.n)}</b>${jtag(p.n)} <span class="muted">${esc(p.t)}・${POSL[p.pos]}・${p.g}</span></span>${act?`<button class="btn small primary" data-act="${act}" data-id="${p.id}">${act==='bid'?'入札':'指名'}</button>`:''}</div>`).join('')||(STAR.size?'<div class="muted" style="font-size:13px">マイリストの選手は残っていません。</div>':'<div class="muted" style="font-size:13px">マイリストはまだ空です。候補リストの☆で追加できます（このブラウザに保存）。</div>')}</div>`;
+  $('#mylist').innerHTML=ST.phase==='done'?'':`<div class="mylist"><div class="panel-head"><h3>リストアップ</h3><span class="muted num" style="font-size:12px">残り ${my.length}人</span></div>${my.slice(0,8).map(p=>`<div class="mi"><span><b>${esc(p.n)}</b>${jtag(p.n)} <span class="muted">${esc(p.t)}・${POSL[p.pos]}・${p.g}</span></span>${act?`<button class="btn small primary" data-act="${act}" data-id="${p.id}">${act==='bid'?'入札':'指名'}</button>`:''}</div>`).join('')||(STAR.size?'<div class="muted" style="font-size:13px">リストアップの選手は残っていません。</div>':'<div class="muted" style="font-size:13px">リストアップはまだ空です。候補リストの☆で追加できます（このブラウザに保存）。</div>')}</div>`;
   if(!t){$('#sheet').innerHTML='<p class="muted" style="margin:0">担当球団を選ぶと、ここに指名した選手が並びます。</p>';$('#copyBox').innerHTML='';return}
   let h='';
   for(const tt of myTeams()){
-  h+=`<h3 style="margin:${h?'14px':'0'} 0 4px">${TN[tt]}の指名</h3>`;
+  h+=`<h3 class="sheethead${nowTeam()===tt?' now':''}" style="margin:${h?'14px':'0'} 0 4px">${TN[tt]}の指名${nowTeam()===tt?'（指名中）':''}</h3>`;
   for(let r=1;r<=ROUNDS;r++){
     const o=ST.order.find(x=>x[0]===tt&&x[2]===r);
     h+=`<div class="slot"><div class="rd">${r}位</div>${o?`<div><b>${esc(P[o[1]].n)}</b>${jtag(P[o[1]].n)}　<span class="muted">${esc(P[o[1]].t)}・${POSL[P[o[1]].pos]}${o[3]===1?'・外れ1位':''}${o[3]===2?'・時間切れで自動':''}</span></div>`:`<div class="empty">${ST.ended.includes(tt)&&r>1?'選択終了':'—'}</div>`}</div>`;
@@ -1136,18 +1150,19 @@ async function copyText(txt,btn){
   catch(e){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');btn.textContent='コピーしました'}catch(_){btn.textContent='コピーできませんでした'}ta.remove()}
   setTimeout(()=>{btn.textContent=btn.dataset.label},1800);
 }
-const COLORMAP={pos:{RHP:'k1',LHP:'k1',TW:'k1',C:'k3',IF:'k2',OF:'k4'},cat:{'大':'k1','高':'k2','社':'k3','独':'k4'}};
-const LEGEND={pos:[['k1','投手'],['k3','捕手'],['k2','内野手'],['k4','外野手']],cat:[['k2','高校'],['k1','大学'],['k3','社会人'],['k4','独立']]};
+function posColor(p){if(p.pos==='C')return 'p3';if(p.pos==='IF')return 'p4';if(p.pos==='OF')return 'p5';return p.role==='R'?'p2':'p1'}
+const COLORMAP={pos:{},cat:{'大':'k1','高':'k2','社':'k3','独':'k4'}};
+const LEGEND={pos:[['p1','先発'],['p2','中継ぎ・抑え'],['p3','捕手'],['p4','内野手'],['p5','外野手']],cat:[['k2','高校'],['k1','大学'],['k3','社会人'],['k4','独立']]};
 const POSS={RHP:'投・右',LHP:'投・左',TW:'投・内',C:'捕',IF:'内',OF:'外'};
 function renderBoard(){
   $('#legend').innerHTML=LEGEND[ui.color].map(([k,l])=>`<span><i class="${k}"></i>${l}</span>`).join('')+'<span class="muted">担当者がいる球団は見出しに名前、あなたの球団は青枠</span>';
   const t0=myTeam();
-  let h='<thead><tr><th></th>'+TEAMS.map(t=>{const s=ST.seats[t.id];return `<th class="${myTeams().includes(t.id)?'d':''}">${t.n}${s?`<span class="thn">${esc(s===NET.me?'あなた':(nickOf(s)||'参加者'))}</span>`:''}</th>`}).join('')+'</tr></thead><tbody>';
+  let h='<thead><tr><th></th>'+TEAMS.map(t=>{const s=ST.seats[t.id];return `<th class="${myTeams().includes(t.id)?'d':''}${nowTeam()===t.id?' now':''}">${t.n}${s?`<span class="thn">${esc(s===NET.me?'あなた':(nickOf(s)||'参加者'))}</span>`:''}</th>`}).join('')+'</tr></thead><tbody>';
   for(let r=1;r<=ROUNDS;r++){
     h+=`<tr><th class="rh">${r}位</th>`;
     for(const t of TEAMS){
-      const o=ST.order.find(x=>x[0]===t.id&&x[2]===r);const d=myTeams().includes(t.id)?' d':'';
-      if(o){const p=P[o[1]];const k=COLORMAP[ui.color][ui.color==='pos'?p.pos:p.c];h+=`<td class="${k}${d}"><span class="bn">${esc(p.n)}</span>${jtag(p.n)}<span class="bs">${POSS[p.pos]}・${esc(p.t)}${o[3]===1?'・外れ':''}${o[3]===2?'・自動':''}</span></td>`}
+      const o=ST.order.find(x=>x[0]===t.id&&x[2]===r);const d=(myTeams().includes(t.id)?' d':'')+(nowTeam()===t.id?' nowcol':'');
+      if(o){const p=P[o[1]];const k=(ui.color==='pos'?posColor(p):COLORMAP.cat[p.c]);h+=`<td class="${k}${d}"><span class="bn">${esc(p.n)}</span>${jtag(p.n)}<span class="bs">${POSS[p.pos]}・${esc(p.t)}${o[3]===1?'・外れ':''}${o[3]===2?'・自動':''}</span></td>`}
       else if(ST.phase==='draft'&&ST.cur===t.id&&ST.round===r)h+=`<td class="${d.trim()}"><span class="out">指名中…</span></td>`;
       else if(ST.ended.includes(t.id)&&r>1&&!ST.order.some(x=>x[0]===t.id&&x[2]>r))h+=`<td class="${d.trim()}"><span class="out">選択終了</span></td>`;
       else h+=`<td class="${d.trim()}"></td>`;
@@ -1183,10 +1198,10 @@ function renderReveal(){
   const tm=remainMs();
   let line;
   if(w)line=`<div><span class="stamp${mineIn&&w!==t0?' lose':''}">${mineIn?(w===t0?'交渉権確定':'外れ'):'交渉権確定'}</span><p style="margin:8px 0 0">当たりは封筒${hitIdx+1}。${TN[w]}が交渉権を獲得しました。</p></div>`;
-  else if(canDraw)line=`<p style="margin:0"><b>${myIn.length>1?TN[t0]+'の':''}封筒を1つ選んでください。</b>当たりは${ts.length}つのうち1つ。${tm!=null?`残り <span class="num">${fmt(tm)}</span>（時間切れは自動）`:''}</p>`;
+  else if(canDraw)line=`<p style="margin:0">${myTeams().length>1?`<span class="nowteam">${TN[t0]}の封筒</span>`:''}<b>封筒を1つ選んでください。</b>当たりは${ts.length}つのうち1つ。${tm!=null?`残り <span class="num">${fmt(tm)}</span>（時間切れは自動）`:''}</p>`;
   else line=`<p style="margin:0">${mineIn?'封筒を選びました。ほかの球団を待っています…':'各球団が封筒を選んでいます…'}${tm!=null?` 残り <span class="num">${fmt(tm)}</span>`:''}<br><span class="muted" style="font-size:12.5px">担当者がいない球団は、最後に残った封筒を自動で引きます。</span></p>`;
   box.innerHTML=`<p class="muted num" style="margin:0">抽選 ${i+1} / ${R.contests.length}</p><div class="who-big">${esc(P[pid].n)}</div><div class="muted">${esc(P[pid].t)}・${POSL[P[pid].pos]}</div>
-    <div class="bidders">${ts.map(t=>`<span class="${myTeams().includes(t)?'d':''}${w===t?' win':''}">${TN[t]}${ST.seats[t]?'':'（自動）'}</span>`).join('')}</div>
+    <div class="bidders">${ts.map(t=>`<span class="${myTeams().includes(t)?'d':''}${w===t?' win':''}${!w&&canDraw&&myTeams().length>1&&t===t0?' now':''}">${TN[t]}${ST.seats[t]?'':'（自動）'}</span>`).join('')}</div>
     <div class="envs">${envs}</div>${line}`;
 }
 
