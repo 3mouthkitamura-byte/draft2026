@@ -12,7 +12,7 @@
   --paper:#eef1f5; --card:#ffffff; --ink:#15213a; --muted:#5a6578; --line:#d6dce5;
   --accent:#1d4fa6; --accent-soft:#e3ebf8; --accent-ink:#ffffff;
   --gold:#a87a1f; --gold-soft:#f6edd9; --warn:#b4472f; --ok:#2f7a4f;
-  --k1:#dce7fa; --k2:#f6e5c3; --k3:#d6efdf; --k4:#f6d9e2;
+  --k1:#dce7fa; --k2:#f6e5c3; --k3:#d6efdf; --k4:#f8d3cf;
   --display:"Dela Gothic One","Hiragino Sans","Yu Gothic",sans-serif;
   --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
@@ -20,11 +20,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#0f1522; --card:#171f2f; --ink:#e5eaf2; --muted:#97a3b6; --line:#28334a;
   --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220;
-  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4b2432; color-scheme:dark}}
+  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#0f1522; --card:#171f2f; --ink:#e5eaf2; --muted:#97a3b6; --line:#28334a;
   --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220;
-  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4b2432; color-scheme:dark}
+  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.6}
@@ -171,7 +171,7 @@ table.board{border-collapse:collapse;font-size:12.5px;min-width:880px;width:100%
   <header class="top">
     <div>
       <h1>中日目線 仮想ドラフト2026</h1>
-      <p>あなたが中日の指名を担当し、他の11球団は各球団の傾向に沿って自動で指名します。1位は入札と抽選、2位以降はウェーバー方式（今年はセ・リーグ優先）。中日は最下位想定です。</p>
+      <p>あなたが中日の指名を担当し、他の11球団は各球団の傾向に沿って自動で指名します。1位は入札と抽選、2位以降はウェーバー方式（今年はパ・リーグ優先）。中日は最下位想定です。</p>
     </div>
     <button class="btn" id="restart">最初からやり直す</button>
   </header>
@@ -937,8 +937,8 @@ function renderSheet(){
     g.innerHTML=`<div class="gonebox"><b>参考：事前に組んだ最下位想定の案</b><ul><li>1位 織田翔希（外れたら榊原七斗 or 平田玲翔）</li><li>2位 柿本晟弥 or 池田聖摩</li><li>4位 沢山優介</li><li>そのほか 高卒野手・外野手・捕手で穴埋め</li></ul></div>`;
   } else g.innerHTML='';
 }
-const COLORMAP={pos:{RHP:'k1',LHP:'k1',TW:'k1',C:'k2',IF:'k3',OF:'k4'},cat:{'大':'k1','高':'k2','社':'k3','独':'k4'}};
-const LEGEND={pos:[['k1','投手'],['k2','捕手'],['k3','内野手'],['k4','外野手']],cat:[['k2','高校'],['k1','大学'],['k3','社会人'],['k4','独立']]};
+const COLORMAP={pos:{RHP:'k1',LHP:'k1',TW:'k1',C:'k3',IF:'k2',OF:'k4'},cat:{'大':'k1','高':'k2','社':'k3','独':'k4'}};
+const LEGEND={pos:[['k1','投手'],['k3','捕手'],['k2','内野手'],['k4','外野手']],cat:[['k2','高校'],['k1','大学'],['k3','社会人'],['k4','独立']]};
 const POSS={RHP:'投・右',LHP:'投・左',TW:'投・内',C:'捕',IF:'内',OF:'外'};
 function cellHTML(p,extra,tid){
   if(!p)return `<td class="${tid==='D'?'d':''}">${extra||''}</td>`;

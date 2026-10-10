@@ -13,7 +13,7 @@
   --paper:#eef1f5; --card:#ffffff; --ink:#15213a; --muted:#5a6578; --line:#d6dce5;
   --accent:#1d4fa6; --accent-soft:#e3ebf8; --accent-ink:#ffffff;
   --gold:#a87a1f; --gold-soft:#f6edd9; --warn:#b4472f; --ok:#2f7a4f;
-  --k1:#dce7fa; --k2:#f6e5c3; --k3:#d6efdf; --k4:#f6d9e2;
+  --k1:#dce7fa; --k2:#f6e5c3; --k3:#d6efdf; --k4:#f8d3cf;
   --display:"Dela Gothic One","Hiragino Sans","Yu Gothic",sans-serif;
   --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
@@ -21,11 +21,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#0f1522; --card:#171f2f; --ink:#e5eaf2; --muted:#97a3b6; --line:#28334a;
   --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220;
-  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4b2432; color-scheme:dark}}
+  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#0f1522; --card:#171f2f; --ink:#e5eaf2; --muted:#97a3b6; --line:#28334a;
   --accent:#7aa2ff; --accent-soft:#1d2b4a; --accent-ink:#0b1220;
-  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4b2432; color-scheme:dark}
+  --gold:#e2b75a; --gold-soft:#3a2f17; --warn:#ec8467; --ok:#6cc596; --k1:#20345a; --k2:#4a3a18; --k3:#1c402c; --k4:#4f2420; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.6}
@@ -1136,8 +1136,8 @@ async function copyText(txt,btn){
   catch(e){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');btn.textContent='コピーしました'}catch(_){btn.textContent='コピーできませんでした'}ta.remove()}
   setTimeout(()=>{btn.textContent=btn.dataset.label},1800);
 }
-const COLORMAP={pos:{RHP:'k1',LHP:'k1',TW:'k1',C:'k2',IF:'k3',OF:'k4'},cat:{'大':'k1','高':'k2','社':'k3','独':'k4'}};
-const LEGEND={pos:[['k1','投手'],['k2','捕手'],['k3','内野手'],['k4','外野手']],cat:[['k2','高校'],['k1','大学'],['k3','社会人'],['k4','独立']]};
+const COLORMAP={pos:{RHP:'k1',LHP:'k1',TW:'k1',C:'k3',IF:'k2',OF:'k4'},cat:{'大':'k1','高':'k2','社':'k3','独':'k4'}};
+const LEGEND={pos:[['k1','投手'],['k3','捕手'],['k2','内野手'],['k4','外野手']],cat:[['k2','高校'],['k1','大学'],['k3','社会人'],['k4','独立']]};
 const POSS={RHP:'投・右',LHP:'投・左',TW:'投・内',C:'捕',IF:'内',OF:'外'};
 function renderBoard(){
   $('#legend').innerHTML=LEGEND[ui.color].map(([k,l])=>`<span><i class="${k}"></i>${l}</span>`).join('')+'<span class="muted">担当者がいる球団は見出しに名前、あなたの球団は青枠</span>';
